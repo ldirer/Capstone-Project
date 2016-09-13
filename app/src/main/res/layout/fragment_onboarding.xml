@@ -1,0 +1,90 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    tools:context="com.belenos.udacitycapstone.OnboardingFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.3"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/user_name_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            tools:text="bouga" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/onboarding_pick_a_language" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/i_want_to_learn"
+            android:textAppearance="@style/header"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+
+            <com.aigestudio.wheelpicker.WheelPicker
+                android:id="@+id/wheel_picker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/activity_vertical_margin"
+
+                android:background="@android:color/white"
+                app:wheel_atmospheric="true"
+                app:wheel_curved="true"
+                app:wheel_cyclic="true"
+                app:wheel_item_align="center"
+                app:wheel_item_text_color="#A7A7DB"
+                app:wheel_item_text_size="20sp"
+                app:wheel_selected_item_text_color="#536D8A"
+                />
+
+            <ImageView
+                android:id="@+id/flag_image_view"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="@dimen/activity_vertical_margin"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:contentDescription="@string/flag_content_description" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/start_learning_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/start_learning"
+            android:background="@color/colorAccent"
+            />
+
+    </LinearLayout>
+
+
+</LinearLayout>
