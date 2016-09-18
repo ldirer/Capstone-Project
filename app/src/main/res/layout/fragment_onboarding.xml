@@ -21,6 +21,7 @@
             tools:text="bouga" />
 
         <TextView
+            android:id="@+id/call_to_action_textview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"

@@ -1,19 +1,29 @@
 package com.belenos.udacitycapstone;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.media.MediaBrowserCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
 
+import com.belenos.udacitycapstone.data.DbContract;
+import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -25,10 +35,15 @@ import butterknife.OnClick;
  */
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
+    public static final String ACTION_LOGOUT = "LOGOUT";
+
     public static final String KEY_GOOGLE_GIVEN_NAME = "GOOGLE_GIVEN_NAME";
     public static final String KEY_GOOGLE_ID = "GOOGLE_ID";
+    public static final String KEY_USER_ID = "USER_ID";
 
     private static final String LOG_TAG = LoginActivity.class.getSimpleName();
+    private static final String KEY_ALREADY_LOGGED_IN = "LOGGED_IN";
+
     private GoogleApiClient mGoogleApiClient;
 
     // Wat. From the Google sample. Quality code.
@@ -38,17 +53,36 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .build();
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
+        // If the user is already logged in we want to start the main activity straight away.
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean alreadyLoggedIn = prefs.getBoolean(KEY_ALREADY_LOGGED_IN, false);
+
+        Intent launchIntent = getIntent();
+        boolean signingOut = launchIntent.getAction().equals(ACTION_LOGOUT);
+
+        if (alreadyLoggedIn && !signingOut) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra(KEY_GOOGLE_GIVEN_NAME, prefs.getString(KEY_GOOGLE_GIVEN_NAME, null));
+            intent.putExtra(KEY_GOOGLE_ID, prefs.getString(KEY_GOOGLE_ID, null));
+            startActivity(intent);
+        } else {
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .build();
+
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .enableAutoManage(this, this)
+                    .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                    .build();
 
 
-        setContentView(R.layout.activity_login);
-        ButterKnife.bind(this);
+            setContentView(R.layout.activity_login);
+            ButterKnife.bind(this);
+        }
+
+        if (signingOut) {
+            signOut();
+        }
     }
 
     @Override
@@ -65,6 +99,30 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
+    /**
+     * This method makes sure we sign out as soon as the google api client is ready.
+     */
+    private void signOut() {
+        mGoogleApiClient.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+            @Override
+            public void onConnected(@Nullable Bundle bundle) {
+                Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                        new ResultCallback<Status>() {
+                            @Override
+                            public void onResult(Status status) {
+                                Log.d(LOG_TAG, "in signOut.onResult");
+                                Log.d(LOG_TAG, status.isSuccess() ? "success" : "not success");
+                            }
+                        });
+            }
+
+            @Override
+            public void onConnectionSuspended(int i) {
+
+            }
+        });
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -79,16 +137,54 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
-//            mStatusTextView.setText(getString(R.string.signed_in_format, acct.getDisplayName()));
-// Also: acct.getId();
+
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+            // apply is async for the writing-to-disk part but writes to in-memory SharedPref immediately.
+            preferences.edit().putBoolean(KEY_ALREADY_LOGGED_IN, true).apply();
+
             if (acct == null) {
                 Log.e(LOG_TAG, "Google Sign was a success but account is null!");
-            }
-            else {
-                //TODO: Start a new activity and pass it the account info. Using a bundle param in startActivity.
+            } else {
+                preferences.edit()
+                        .putString(KEY_GOOGLE_GIVEN_NAME, acct.getDisplayName())
+                        .putString(KEY_GOOGLE_ID, acct.getId())
+                        .apply();
+
+                // TODO: move that out of the UI thread?
+                ContentValues userCV = new ContentValues();
+                userCV.put(DbContract.UserEntry.COLUMN_NAME, acct.getDisplayName());
+                userCV.put(DbContract.UserEntry.COLUMN_GOOGLE_ID, acct.getId());
+
+                ContentResolver contentResolver = getContentResolver();
+                Uri userUri;
+                try {
+                    userUri = contentResolver.insert(DbContract.UserEntry.CONTENT_URI, userCV);
+                }
+                catch (SQLException e) {
+                    // Happens when we try to insert a user who already exists.
+                    userUri = DbContract.UserEntry.buildUserByGoogleIdUri(acct.getId());
+                }
+
+                if (null != userUri) {
+                    Cursor c = contentResolver.query(userUri, new String[]{DbContract.UserEntry._ID},
+                            null,
+                            null,
+                            null);
+                    assert c != null;
+                    c.moveToFirst();
+                    long userId = c.getLong(0);
+                    c.close();
+                    preferences.edit().putLong(KEY_USER_ID, userId).apply();
+                }
+                else {
+                    Log.e(LOG_TAG, "userUri is null! We could not insert nor retrieve a matching Google id...");
+                }
+
+
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra(KEY_GOOGLE_GIVEN_NAME, acct.getDisplayName());
-                intent.putExtra(KEY_GOOGLE_ID, acct.getDisplayName());
+                intent.putExtra(KEY_GOOGLE_ID, acct.getId());
                 startActivity(intent);
             }
         } else {

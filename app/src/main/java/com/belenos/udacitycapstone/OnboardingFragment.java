@@ -1,19 +1,26 @@
 package com.belenos.udacitycapstone;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.aigestudio.wheelpicker.WheelPicker;
+import com.belenos.udacitycapstone.data.DbContract;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,21 +39,45 @@ import butterknife.Unbinder;
  * Use the {@link OnboardingFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class OnboardingFragment extends Fragment implements WheelPicker.OnItemSelectedListener {
+public class OnboardingFragment extends Fragment implements WheelPicker.OnItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String LOG_TAG = OnboardingFragment.class.getSimpleName();
     private OnFragmentInteractionListener mListener;
 
+    // We'll use this to slightly adjust the layout and wording when it's a proper onboarding vs when the user just wants to add a language.
+    private boolean mUserAlreadyOnboarded;
+
     @BindView(R.id.user_name_text_view) TextView mNameTextView;
+    @BindView(R.id.call_to_action_textview) TextView mCallToActionTextView;
     @BindView(R.id.wheel_picker) WheelPicker mWheelPicker;
     @BindView(R.id.flag_image_view) ImageView mFlagImageView;
 
     private String mDisplayName = "";
 
 
+    // A list of icon names (and another one for ids) that we'll maintain in sync with wheel selector language names.
+    private List<String> mWheelDataIconNames;
+    private List<Long> mWheelDataIds;
+
     // Butterknife stuff
     private Unbinder mUnbinder;
-    private String mLanguageSelected;
+
+
+    // Loader stuff
+    private static final int LANGUAGES_LOADER = 0;
+    private static final String[] LANGUAGES_COLUMNS = {
+            // In this case the id needs to be fully qualified with a table name, since
+            // the content provider joins several tables.
+            DbContract.LanguageEntry.TABLE_NAME + "." + DbContract.LanguageEntry._ID,
+            DbContract.LanguageEntry.COLUMN_NAME,
+            DbContract.LanguageEntry.COLUMN_ICON_NAME
+    };
+
+    public static final int COL_LANGUAGE_ID = 0;
+    public static final int COL_LANGUAGE_NAME = 1;
+    public static final int COL_LANGUAGE_ICON_NAME = 2;
+    private String mUserGoogleId;
+    private long mUserId;
 
     public OnboardingFragment() {
         // Required empty public constructor
@@ -57,9 +88,21 @@ public class OnboardingFragment extends Fragment implements WheelPicker.OnItemSe
     }
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        getLoaderManager().initLoader(LANGUAGES_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mDisplayName = getArguments().getString(LoginActivity.KEY_GOOGLE_GIVEN_NAME);
+        Bundle args = getArguments();
+        mUserAlreadyOnboarded = args != null && args.getBoolean(HomeFragment.FRAGMENT_ARG_ALREADY_ONBOARDED, false);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        mDisplayName = preferences.getString(LoginActivity.KEY_GOOGLE_GIVEN_NAME, null);
+        mUserGoogleId = preferences.getString(LoginActivity.KEY_GOOGLE_ID, null);
+        mUserId = preferences.getLong(LoginActivity.KEY_USER_ID, 0);
     }
 
     @Override
@@ -69,19 +112,17 @@ public class OnboardingFragment extends Fragment implements WheelPicker.OnItemSe
         View view = inflater.inflate(R.layout.fragment_onboarding, container, false);
         mUnbinder = ButterKnife.bind(this, view);
 
-        mNameTextView.setText(getResources().getString(R.string.user_greeting, mDisplayName));
-
-        List<String> data = new ArrayList<>();
-        data.add("French");
-        data.add("German");
-        data.add("Romanian");
-        data.add("Romanian");
-        data.add("Romanian");
-        data.add("Romanian");
-        data.add("Romanian");
+        // Adjust the wording when it's a returning user vs proper onboarding.
+        if (mUserAlreadyOnboarded) {
+            mNameTextView.setText(getResources().getString(R.string.user_greeting, mDisplayName));
+            mCallToActionTextView.setText(getResources().getString(R.string.learn_next_pick_a_language));
+        }
+        else {
+            mNameTextView.setText(getResources().getString(R.string.user_first_greeting, mDisplayName));
+            mCallToActionTextView.setText(getResources().getString(R.string.onboarding_pick_a_language));
+        }
 
         mWheelPicker.setOnItemSelectedListener(this);
-        mWheelPicker.setData(data);
         return view;
     }
 
@@ -112,8 +153,63 @@ public class OnboardingFragment extends Fragment implements WheelPicker.OnItemSe
     public void onItemSelected(WheelPicker picker, Object data, int position) {
         Log.d(LOG_TAG, "in onItemSelected");
         Log.d(LOG_TAG, String.format("position: %d", position));
-        mLanguageSelected = (String) data;
-        mFlagImageView.setImageDrawable(getResources().getDrawable(R.drawable.fr));
+
+        // We could make a query to retrieve the flag icon and the id, I find this is less cumbersome.
+        String iconName = mWheelDataIconNames.get(position);
+
+        mFlagImageView.setImageResource(getResources()
+                .getIdentifier(iconName, "drawable", getContext().getPackageName()));
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Log.d(LOG_TAG, "in onCreateLoader");
+        Uri uri = DbContract.LanguageEntry.buildLanguagesUri();
+        // We don't really care about the sort order but we want to be consistent.
+        String sortOrder = DbContract.LanguageEntry.COLUMN_NAME + " ASC";
+        return new CursorLoader(getActivity(), uri, LANGUAGES_COLUMNS, null, null, sortOrder);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d(LOG_TAG, "in onLoadFinished");
+        //TODO: parse data into a list and set it into the wheel
+        // We parse data to put language names into a list and into a wheel.
+        // We maintain a separate list for icon names that 'shares indices' with the wheel data.
+        // We'll use it to retrieve the icon name for the selected language.
+        List<String> wheelData = new ArrayList<>();
+        mWheelDataIconNames = new ArrayList<>();
+        mWheelDataIds = new ArrayList<>();
+        if (data == null) {
+            Log.d(LOG_TAG, "in onLoadFinished, cursor is null!");
+            return;
+        }
+        while (data.moveToNext()) {
+            wheelData.add(data.getString(COL_LANGUAGE_NAME));
+            mWheelDataIconNames.add(data.getString(COL_LANGUAGE_ICON_NAME));
+            mWheelDataIds.add(data.getLong(COL_LANGUAGE_ID));
+        }
+
+        mWheelPicker.setData(wheelData);
+
+        // We want to be sure we have our own (=non-default) data in the wheel picker to avoid indexErrors.
+        if (wheelData.size() > 0) {
+            // Set the flag icon to the current position.
+            // The flag changes 'onItemSelected' but we need to initialize it.
+            int position = mWheelPicker.getCurrentItemPosition();
+            String iconName = mWheelDataIconNames.get(position);
+            mFlagImageView.setImageResource(getResources()
+                    .getIdentifier(iconName, "drawable", getContext().getPackageName()));
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        Log.d(LOG_TAG, "in onLoaderReset");
+        // onLoaderReset is invoked on fragment destruction, so we don't have a wheel picker no mo'!
+        if (mWheelPicker != null) {
+            mWheelPicker.setData(new ArrayList<String>());
+        }
     }
 
     /**
@@ -129,18 +225,26 @@ public class OnboardingFragment extends Fragment implements WheelPicker.OnItemSe
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
-        void onLanguageSelected(Integer languageId);
+        void onLanguageSelected(String languageSelectedName, long languageId);
     }
 
 
     @OnClick(R.id.start_learning_button)
     public void onStartLearning() {
-        // TODO: add language to user.
-        // TODO: download data for the language.
-        // TODO: launch the game with the right language.
+        // TODO: do something smart when the user already added the language. Mb a message (toast?) and cancel?
 
-        // TODO: get the id instead of the language string.
-        Integer mLanguageSelectedId = 2;
-        mListener.onLanguageSelected(mLanguageSelectedId);
+        // 1. Add the language to the user's list of languages.
+        //TODO: not on UI thread? Well we want it to show up on the next screen so...-> Nope, we wont show the Home Screen right after onboarding.
+        int position = mWheelPicker.getCurrentItemPosition();
+        long languageSelectedId = mWheelDataIds.get(position);
+        String languageSelectedName = (String) mWheelPicker.getData().get(position);
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(DbContract.UserLanguageEntry.COLUMN_LANGUAGE_ID, languageSelectedId);
+        contentValues.put(DbContract.UserLanguageEntry.COLUMN_USER_ID, mUserId);
+        Uri returnUri = getContext().getContentResolver().insert(DbContract.UserLanguageEntry.CONTENT_URI, contentValues);
+
+        // TODO: 2.download data for the language.
+        // TODO: 3.launch the game with the right language.
+        mListener.onLanguageSelected(languageSelectedName, languageSelectedId);
     }
 }

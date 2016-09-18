@@ -1,14 +1,24 @@
 package com.belenos.udacitycapstone;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.belenos.udacitycapstone.data.DbContract;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -19,36 +29,58 @@ import butterknife.ButterKnife;
  * The user can start a new language or resume playing another one.
  * The user can also login with a different Google account should he wish to.
  */
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private static final String ARG_USER_ID = "ARG_USER_ID";
+    private static final String LOG_TAG = HomeFragment.class.getSimpleName();
+    public static final String FRAGMENT_ARG_ALREADY_ONBOARDED = "ALREADY_ONBOARDED";
 
 
     private OnFragmentInteractionListener mListener;
-    private int mUserId;
+    private long mUserId;
 
 
     @BindView(R.id.languages_recyclerview) RecyclerView mRecyclerView;
     private LanguagesAdapter mUserLanguagesAdapter;
 
+
+
+    // Loader stuff
+    private static final int LANGUAGES_FOR_USER_LOADER = 0;
+    private static final String[] LANGUAGES_FOR_USER_COLUMNS = {
+            // In this case the id and name need to be fully qualified with a table name, since
+            // the content provider joins several tables.
+            DbContract.LanguageEntry.TABLE_NAME + "." + DbContract.LanguageEntry._ID,
+            DbContract.LanguageEntry.TABLE_NAME + "." + DbContract.LanguageEntry.COLUMN_NAME,
+            DbContract.LanguageEntry.COLUMN_ICON_NAME
+    };
+
+    public static final int COL_LANGUAGES_FOR_USER_ID = 0;
+    public static final int COL_LANGUAGES_FOR_USER_NAME = 1;
+    public static final int COL_LANGUAGES_FOR_USER_ICON_NAME = 2;
+
+
+
+
     public HomeFragment() {
         // Required empty public constructor
     }
 
-    public static HomeFragment newInstance(int userId) {
-        HomeFragment fragment = new HomeFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_USER_ID, userId);
-        fragment.setArguments(args);
-        return fragment;
+    public static HomeFragment newInstance() {
+        return new HomeFragment();
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        getLoaderManager().initLoader(LANGUAGES_FOR_USER_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mUserId = getArguments().getInt(ARG_USER_ID);
-        }
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        mUserId = preferences.getLong(LoginActivity.KEY_USER_ID, 0);
     }
 
     @Override
@@ -60,7 +92,7 @@ public class HomeFragment extends Fragment {
         ButterKnife.bind(this, view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(layoutManager);
-        mUserLanguagesAdapter = new LanguagesAdapter();
+        mUserLanguagesAdapter = new LanguagesAdapter(this.getContext(), this);
         mRecyclerView.setAdapter(mUserLanguagesAdapter);
 
         return view;
@@ -84,6 +116,29 @@ public class HomeFragment extends Fragment {
         mListener = null;
     }
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Log.d(LOG_TAG, "in onCreateLoader");
+        //TODO: use actual user id in query
+        Uri uri = DbContract.UserEntry.buildLanguagesForUserUri(1);
+        // We don't really care about the sort order but we want to be consistent.
+        String sortOrder = DbContract.LanguageEntry.TABLE_NAME + "." + DbContract.LanguageEntry.COLUMN_NAME + " ASC";
+        return new CursorLoader(getActivity(), uri, LANGUAGES_FOR_USER_COLUMNS, null, null, sortOrder);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d(LOG_TAG, "in onLoadFinished");
+        mUserLanguagesAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        Log.d(LOG_TAG, "in onLoaderReset");
+        mUserLanguagesAdapter.swapCursor(null);
+
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -97,5 +152,6 @@ public class HomeFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+        void onAddLanguage();
     }
 }

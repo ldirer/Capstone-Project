@@ -1,0 +1,38 @@
+
+<!--
+    Inspired from the Google sample on card flipping.
+    This object animator is used as a custom fragment transition. See
+    FragmentTransaction.setCustomAnimation for more details.
+
+    The overall effect of this animator is to rotate the front of the card
+    out of view. The order of operations is described below:
+
+    1. The front rotates 90 degrees, from facing the user to being
+       zero-width, fully perpendicular to the viewer, facing left.
+    2. The front rotates (instantly) another 180 degrees, so we have 90 degrees left for a complete rotation.
+
+    At the end of this animation we should make the card view look like the back of our card.
+    Then a second animation will complete the flip.
+
+    We could use only one animation but splitting them allows setting a listener for the end of this one.
+-->
+
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Rotate. -->
+    <objectAnimator
+        android:valueFrom="0"
+        android:valueTo="90"
+        android:propertyName="rotationY"
+        android:interpolator="@android:interpolator/accelerate_decelerate"
+        android:duration="@integer/card_flip_time_half" />
+
+
+    <!-- When the card is 0-width (half turned), instantly turn it 180 degrees more. -->
+    <!-- This enables us to show the same layout when we complete the rotation but pretend it's the back of the card. -->
+    <objectAnimator
+        android:valueFrom="90"
+        android:valueTo="270"
+        android:propertyName="rotationY"
+        android:startOffset="@integer/card_flip_time_half"
+        android:duration="0" />
+</set>

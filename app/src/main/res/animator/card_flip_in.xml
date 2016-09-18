@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- We rotate again so it looks as if we just flipped the card-->
+    <objectAnimator
+        android:valueFrom="270"
+        android:valueTo="360"
+        android:propertyName="rotationY"
+        android:startOffset="@integer/card_flip_time_half"
+        android:duration="@integer/card_flip_time_half" />
+
+</set>
