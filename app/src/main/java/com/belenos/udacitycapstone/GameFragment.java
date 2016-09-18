@@ -6,6 +6,7 @@ import android.animation.AnimatorSet;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
 import android.text.Editable;
@@ -18,6 +19,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.belenos.udacitycapstone.utils.TrackedFragment;
+import com.google.android.gms.analytics.Tracker;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -32,7 +36,7 @@ import butterknife.OnClick;
  * Use the {@link GameFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class GameFragment extends Fragment {
+public class GameFragment extends TrackedFragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -65,6 +69,7 @@ public class GameFragment extends Fragment {
 
     private String mWordToTranslate = "I eat";
     private String mWordTranslated = "Je mange";
+    private Tracker mTracker;
 
 
     public GameFragment() {
@@ -88,7 +93,9 @@ public class GameFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mLanguageName = getArguments().getString(MainActivity.FRAGMENT_ARG_LANGUAGE_NAME);
         }
+
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -254,5 +261,10 @@ public class GameFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 }

@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.belenos.udacitycapstone.data.DbContract;
+import com.belenos.udacitycapstone.utils.TrackedFragment;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -29,7 +30,7 @@ import butterknife.ButterKnife;
  * The user can start a new language or resume playing another one.
  * The user can also login with a different Google account should he wish to.
  */
-public class HomeFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
+public class HomeFragment extends TrackedFragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private static final String ARG_USER_ID = "ARG_USER_ID";
     private static final String LOG_TAG = HomeFragment.class.getSimpleName();

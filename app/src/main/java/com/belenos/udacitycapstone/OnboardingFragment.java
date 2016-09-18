@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import com.aigestudio.wheelpicker.WheelPicker;
 import com.belenos.udacitycapstone.data.DbContract;
+import com.belenos.udacitycapstone.utils.TrackedFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,7 @@ import butterknife.Unbinder;
  * Use the {@link OnboardingFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class OnboardingFragment extends Fragment implements WheelPicker.OnItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor> {
+public class OnboardingFragment extends TrackedFragment implements WheelPicker.OnItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String LOG_TAG = OnboardingFragment.class.getSimpleName();
     private OnFragmentInteractionListener mListener;
@@ -227,7 +228,6 @@ public class OnboardingFragment extends Fragment implements WheelPicker.OnItemSe
         void onFragmentInteraction(Uri uri);
         void onLanguageSelected(String languageSelectedName, long languageId);
     }
-
 
     @OnClick(R.id.start_learning_button)
     public void onStartLearning() {

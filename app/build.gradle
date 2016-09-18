@@ -43,6 +43,8 @@ dependencies {
     // Dependency for Google Sign-In
     compile 'com.google.android.gms:play-services-auth:9.4.0'
 
+    compile 'com.google.android.gms:play-services-analytics:9.4.0'
+
     compile 'com.android.support:support-v4:24.2.1'
     compile 'cn.aigestudio.wheelpicker:WheelPicker:1.1.2'
 

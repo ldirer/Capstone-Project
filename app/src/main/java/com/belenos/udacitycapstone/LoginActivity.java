@@ -16,6 +16,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.belenos.udacitycapstone.data.DbContract;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -49,10 +51,18 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     // Wat. From the Google sample. Quality code.
     private static final int RC_SIGN_IN = 9001;
 
+    Tracker mTracker;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Google Analytics stuff
+        // Obtain the shared Tracker instance.
+        MyApplication application = (MyApplication) getApplication();
+        mTracker = application.getDefaultTracker();
+
 
         // If the user is already logged in we want to start the main activity straight away.
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -192,6 +202,16 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             Log.e(LOG_TAG, "Google Sign in is NOT a success.");
             // Signed out, show unauthenticated UI.
         }
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String screenName = LOG_TAG;
+        Log.d(LOG_TAG, "Analytics: Setting screen name: " + screenName);
+        mTracker.setScreenName("Image~" + screenName);
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
     }
 }
 

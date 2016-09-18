@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         // TODO: move fragment id to a variable (or delete it altogether).
         OnboardingFragment fragment = OnboardingFragment.newInstance();
         ft.replace(R.id.fragment_frame_layout, fragment, "onboarding");
+        ft.addToBackStack(null);
         ft.commit();
 
         ButterKnife.bind(this);
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         args.putString(FRAGMENT_ARG_LANGUAGE_NAME, languageName);
         fragment.setArguments(args);
         ft.replace(R.id.fragment_frame_layout, fragment, "game");
+        ft.addToBackStack(null);
         ft.commit();
     }
 }
