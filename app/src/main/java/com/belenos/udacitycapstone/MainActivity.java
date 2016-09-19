@@ -16,6 +16,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     public static final String FRAGMENT_ARG_LANGUAGE_NAME = "LANGUAGE_NAME";
+    public static final String FRAGMENT_ARG_LANGUAGE_ID = "LANGUAGE_ID";
 
     @BindView(R.id.sign_in_different_account_button) Button mSwitchAccountButton;
 
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         GameFragment fragment = GameFragment.newInstance(mSwitchAccountButton);
         Bundle args = new Bundle();
         args.putString(FRAGMENT_ARG_LANGUAGE_NAME, languageName);
+        args.putLong(FRAGMENT_ARG_LANGUAGE_ID, languageId);
         fragment.setArguments(args);
         ft.replace(R.id.fragment_frame_layout, fragment, "game");
         ft.addToBackStack(null);

@@ -24,6 +24,7 @@ public class DbContract {
     public static final String PATH_LANGUAGE = "language";
     public static final String PATH_LANGUAGES = "languages";
     public static final String PATH_USER_LANGUAGE = "user_language";
+    public static final String PATH_WORD = "word";
 
     public static final class UserEntry implements BaseColumns {
         public static final String TABLE_NAME = "user";
@@ -69,6 +70,7 @@ public class DbContract {
         public static Uri buildLanguagesUri() {
             return BASE_CONTENT_URI.buildUpon().appendPath(PATH_LANGUAGES).build();
         }
+
     }
 
 
@@ -94,6 +96,18 @@ public class DbContract {
         public static final String COLUMN_WORD = "word";
         // The translated word
         public static final String COLUMN_TRANSLATION = "translation";
+
+
+        private static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_WORD).build();
+
+
+        public static Uri buildWordUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static String getIdFromUri(Uri uri) {
+            return uri.getPathSegments().get(1);
+        }
     }
 
     public static final class AttemptEntry implements BaseColumns {

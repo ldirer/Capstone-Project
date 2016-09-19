@@ -4,10 +4,16 @@ import android.animation.Animator;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.CardView;
 import android.text.Editable;
 import android.text.InputType;
@@ -20,8 +26,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.belenos.udacitycapstone.data.DbContract;
 import com.belenos.udacitycapstone.utils.TrackedFragment;
+import com.belenos.udacitycapstone.utils.Utils;
 import com.google.android.gms.analytics.Tracker;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -36,17 +47,29 @@ import butterknife.OnClick;
  * Use the {@link GameFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class GameFragment extends TrackedFragment {
+public class GameFragment extends TrackedFragment implements LoaderManager.LoaderCallbacks<Cursor>{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String LOG_TAG = GameFragment.class.getSimpleName();
+
+    private static final String[] WORD_COLUMNS = {
+            DbContract.WordEntry.TABLE_NAME + "." + DbContract.WordEntry._ID,
+            DbContract.WordEntry.COLUMN_LANGUAGE_ID,
+            DbContract.WordEntry.COLUMN_WORD,
+            DbContract.WordEntry.COLUMN_TRANSLATION
+    };
+
+
+    public static final int COL_LANGUAGE_ID = 0;
+    public static final int COL_WORD_ID = 1;
+    public static final int COL_WORD = 2;
+    public static final int COL_TRANSLATION = 3;
+    private static final int LOADER_ID = 1;
+
     private static Button mSwitchAccountButton;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mLanguageName;
 
 
     @BindView(R.id.what_to_do) TextView mWhatToDoTextview;
@@ -67,7 +90,15 @@ public class GameFragment extends TrackedFragment {
     private static final Integer[] STATE_SEQUENCE = {FRONT_SHOWN_STATE, FLIPPING_FRONT_SHOWN_STATE, FLIPPING_BACK_SHOWN_STATE, BACK_SHOWN_STATE, FLIPPING_BACK_SHOWN_STATE, FLIPPING_FRONT_SHOWN_STATE};
 
 
+
+
+    private String mLanguageName;
+    private long mLanguageId;
+    private long mUserId;
+
     private String mWordToTranslate = "I eat";
+    private Long mWordToTranslateId;
+
     private String mWordTranslated = "Je mange";
     private Tracker mTracker;
 
@@ -90,10 +121,13 @@ public class GameFragment extends TrackedFragment {
         Log.d(LOG_TAG, "in onCreate");
         if (getArguments() != null) {
             Log.d(LOG_TAG, "in onCreate: we have args!");
-            mParam1 = getArguments().getString(ARG_PARAM1);
             mLanguageName = getArguments().getString(MainActivity.FRAGMENT_ARG_LANGUAGE_NAME);
+            mLanguageId = getArguments().getLong(MainActivity.FRAGMENT_ARG_LANGUAGE_ID);
         }
 
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        mUserId = preferences.getLong(LoginActivity.KEY_USER_ID, 0);
+        getLoaderManager().initLoader(LOADER_ID, null, this);
     }
 
 
@@ -108,11 +142,19 @@ public class GameFragment extends TrackedFragment {
         mWhatToDoTextview.setText(getResources().getString(R.string.translate_into_language, mLanguageName));
         mSwitchAccountButton.setVisibility(View.GONE);
         // TODO: the visibility will depend on whether the user has seen the word before.
-        mToTranslateTextview.setText(mWordToTranslate);
-        mTranslatedTextview.setText(mWordTranslated);
+        updateWordViews();
         mTranslatedTextview.setVisibility(View.INVISIBLE);
         mCardState = FRONT_SHOWN_STATE;
         return view;
+    }
+
+
+    /**
+     * Refresh the content of the word text views based on this object's fields values.
+     */
+    public void updateWordViews() {
+        mToTranslateTextview.setText(mWordToTranslate);
+        mTranslatedTextview.setText(mWordTranslated);
     }
 
     /**
@@ -224,8 +266,13 @@ public class GameFragment extends TrackedFragment {
 
         // Later on we could imagine having a more tolerant system to check the result, for instance correct if levenstein distance < 1.
         if (userAnswer.equals(mWordTranslated)) {
+            // We want to:
+            // 1. Congratulate the user!
+            // 2. Change the card to a new one. = Restarting the loader and maybe launch an animation. TODO
+            // 3. Reset the answer field.
             Toast.makeText(getContext(), getString(R.string.answer_correct_toast), Toast.LENGTH_LONG).show();
-
+            getLoaderManager().restartLoader(LOADER_ID, null, this);
+            mAnswerEdittext.setText("");
         } else {
             Toast.makeText(getContext(), R.string.answer_incorrect_toast, Toast.LENGTH_LONG).show();
         }
@@ -246,6 +293,38 @@ public class GameFragment extends TrackedFragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Log.d(LOG_TAG, "in onCreateLoader");
+        Uri uri = DbContract.WordEntry.buildWordUri(Utils.getNextWordId(mWordToTranslateId, mLanguageId, mUserId));
+        return new CursorLoader(getActivity(), uri, WORD_COLUMNS, null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d(LOG_TAG, "in onLoadFinished");
+        // Get the word and set it onto the view.
+
+        if (data == null) {
+            Log.d(LOG_TAG, "in onLoadFinished, cursor is null!");
+            return;
+        }
+        if (!data.moveToFirst()) {
+            Log.d(LOG_TAG, "in onLoadFinished, cursor is empty!");
+            return;
+        }
+
+        mWordToTranslateId = data.getLong(COL_WORD_ID);
+        mWordToTranslate = data.getString(COL_WORD);
+        mWordTranslated = data.getString(COL_TRANSLATION);
+        updateWordViews();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        //TODO: mb set empty text in the views here. Not sure that's essential/whether there's smt we should do in this method.
     }
 
     /**

@@ -13,6 +13,7 @@ import android.util.Log;
 import com.belenos.udacitycapstone.data.DbContract.LanguageEntry;
 import com.belenos.udacitycapstone.data.DbContract.UserEntry;
 import com.belenos.udacitycapstone.data.DbContract.UserLanguageEntry;
+import com.belenos.udacitycapstone.data.DbContract.WordEntry;
 
 public class DbProvider extends ContentProvider {
     private static final String LOG_TAG = DbProvider.class.getSimpleName();
@@ -27,11 +28,14 @@ public class DbProvider extends ContentProvider {
     private static final int USER_LANGUAGE = 103;
     private static final int USER_BY_GOOGLE_ID = 104;
     private static final int USER_ID = 105;
+    private static final int WORD = 106;
+    private static final int WORD_ID = 107;
 
 
     private static final SQLiteQueryBuilder sLanguagesForUserQueryBuilder;
     private static final SQLiteQueryBuilder sLanguagesQueryBuilder;
     private static final SQLiteQueryBuilder sUsersQueryBuilder;
+    private static final SQLiteQueryBuilder sWordsQueryBuilder;
 
     static {
         sLanguagesForUserQueryBuilder = new SQLiteQueryBuilder();
@@ -50,6 +54,9 @@ public class DbProvider extends ContentProvider {
 
         sLanguagesQueryBuilder.setTables(LanguageEntry.TABLE_NAME);
         sUsersQueryBuilder.setTables(UserEntry.TABLE_NAME);
+
+        sWordsQueryBuilder = new SQLiteQueryBuilder();
+        sWordsQueryBuilder.setTables(WordEntry.TABLE_NAME);
     }
 
 
@@ -57,6 +64,9 @@ public class DbProvider extends ContentProvider {
     private static final String sUserSelection = UserEntry.TABLE_NAME + "." + UserEntry._ID + " = ? ";
     //user.google_id = ?
     private static final String sUserSelectionByGoogleId = UserEntry.TABLE_NAME + "." + UserEntry.COLUMN_GOOGLE_ID + " = ? ";
+
+    //word._id = ?
+    private static final String sWordSelection = WordEntry.TABLE_NAME + "." + WordEntry._ID + " = ? ";
 
 
     static UriMatcher buildUriMatcher() {
@@ -69,6 +79,10 @@ public class DbProvider extends ContentProvider {
 
         matcher.addURI(authority, DbContract.PATH_USER, USER);
         matcher.addURI(authority, DbContract.PATH_USER + "/#", USER_ID);
+
+        matcher.addURI(authority, DbContract.PATH_WORD, WORD);
+        matcher.addURI(authority, DbContract.PATH_WORD + "/#", WORD_ID);
+
         matcher.addURI(authority, DbContract.PATH_USER_LANGUAGE, USER_LANGUAGE);
 
         // For each type of URI you want to add, create a corresponding code.
@@ -116,12 +130,22 @@ public class DbProvider extends ContentProvider {
                 retCursor = getUser(uri, projection, sortOrder);
                 break;
             }
-            case USER: {
-                // Querying by google id is our only use case for now.
-                retCursor = getUserByGoogleId(uri, projection, sortOrder);
+            case WORD_ID: {
+                retCursor = getWord(uri, projection, sortOrder);
             }
         }
         return retCursor;
+    }
+
+    private Cursor getWord(Uri uri, String[] projection, String sortOrder) {
+        String[] selectionArgs = new String[]{WordEntry.getIdFromUri(uri)};
+        return sWordsQueryBuilder.query(mDbHelper.getReadableDatabase(),
+                projection,
+                sWordSelection,
+                selectionArgs,
+                null,
+                null,
+                sortOrder);
     }
 
     private Cursor getUserByGoogleId(Uri uri, String[] projection, String sortOrder) {

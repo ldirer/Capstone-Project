@@ -174,7 +174,6 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         Log.d(LOG_TAG, "in onLoadFinished");
-        //TODO: parse data into a list and set it into the wheel
         // We parse data to put language names into a list and into a wheel.
         // We maintain a separate list for icon names that 'shares indices' with the wheel data.
         // We'll use it to retrieve the icon name for the selected language.
