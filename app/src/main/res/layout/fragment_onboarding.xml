@@ -71,7 +71,7 @@
                 android:layout_height="match_parent"
                 android:layout_margin="@dimen/activity_vertical_margin"
                 android:layout_gravity="center"
-                android:layout_weight="1"
+                android:layout_weight="1.74"
                 android:contentDescription="@string/flag_content_description" />
 
         </LinearLayout>
@@ -83,6 +83,15 @@
             android:layout_gravity="center"
             android:text="@string/start_learning"
             android:background="@color/colorAccent"
+            />
+
+        <android.support.v4.widget.ContentLoadingProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            style="@android:style/Widget.Material.ProgressBar.Large"
+            android:visibility="gone"
             />
 
     </LinearLayout>

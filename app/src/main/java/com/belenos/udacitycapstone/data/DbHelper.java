@@ -13,7 +13,7 @@ import static com.belenos.udacitycapstone.data.DbContract.UserEntry;
 
 public class DbHelper extends SQLiteOpenHelper{
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 9;
+    private static final int DATABASE_VERSION = 18;
 
     static final String DATABASE_NAME = "capstone.db";
 
@@ -36,7 +36,7 @@ public class DbHelper extends SQLiteOpenHelper{
                 " UNIQUE (" + UserEntry.COLUMN_GOOGLE_ID + ") ON CONFLICT IGNORE" +
                 ");";
         final String SQL_CREATE_LANGUAGE_TABLE = "CREATE TABLE " + LanguageEntry.TABLE_NAME + " (" +
-                LanguageEntry._ID + " INTEGER PRIMARY KEY," +
+                LanguageEntry._ID + " INTEGER PRIMARY KEY ON CONFLICT IGNORE," +
                 LanguageEntry.COLUMN_NAME + " TEXT NOT NULL," +
                 LanguageEntry.COLUMN_ICON_NAME + " TEXT NOT NULL" +
                 ");";
@@ -64,15 +64,19 @@ public class DbHelper extends SQLiteOpenHelper{
                 AttemptEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 AttemptEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
                 AttemptEntry.COLUMN_WORD_ID + " INTEGER NOT NULL, " +
+                AttemptEntry.COLUMN_LANGUAGE_ID + " INTEGER NOT NULL, " +
                 // No boolean column in sqlite so we 0-1 encode it.
                 AttemptEntry.COLUMN_SUCCESS + " INTEGER NOT NULL, " +
-                //TODO: check timestamp column dtype.
-                AttemptEntry.COLUMN_TIMESTAMP + " TIMESTAMP NOT NULL" +
+                // We'll store time in UNIX time format. No dedicated datatype in SQLite.
+                AttemptEntry.COLUMN_TIMESTAMP + " INTEGER NOT NULL, " +
+                "FOREIGN KEY (" + AttemptEntry.COLUMN_USER_ID + ") REFERENCES " + UserEntry.TABLE_NAME + " (" + UserEntry._ID + "), " +
+                "FOREIGN KEY (" + AttemptEntry.COLUMN_LANGUAGE_ID + ") REFERENCES " + LanguageEntry.TABLE_NAME + " (" + LanguageEntry._ID + ")" +
                 ");";
 
+        // We make sure our fixtures ids match our server's.
         final String SQL_FIXTURE_LANGUAGES = "INSERT INTO " + LanguageEntry.TABLE_NAME +
-                " (" + LanguageEntry.COLUMN_NAME + ", " + LanguageEntry.COLUMN_ICON_NAME + ") " +
-                "VALUES ('French', 'fr'), ('German', 'de'), ('Romanian', 'ro'), ('Spanish', 'es');";
+                " (" + LanguageEntry._ID + ", " + LanguageEntry.COLUMN_NAME + ", " + LanguageEntry.COLUMN_ICON_NAME + ") " +
+                "VALUES (16, 'French', 'fr'), (17, 'German', 'de'), (41, 'Romanian', 'ro'), (47, 'Spanish', 'es');";
 
         final String SQL_FIXTURE_WORDS = "INSERT INTO " + WordEntry.TABLE_NAME +
                 " (" + WordEntry.COLUMN_LANGUAGE_ID + ", " + WordEntry.COLUMN_WORD + ", " + WordEntry.COLUMN_TRANSLATION + ") " +
@@ -87,7 +91,7 @@ public class DbHelper extends SQLiteOpenHelper{
         sqLiteDatabase.execSQL(SQL_CREATE_ATTEMPT_TABLE);
 
         sqLiteDatabase.execSQL(SQL_FIXTURE_LANGUAGES);
-        sqLiteDatabase.execSQL(SQL_FIXTURE_WORDS);
+//        sqLiteDatabase.execSQL(SQL_FIXTURE_WORDS);
     }
 
     @Override

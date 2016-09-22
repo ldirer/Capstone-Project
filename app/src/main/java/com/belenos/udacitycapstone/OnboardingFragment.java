@@ -17,11 +17,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.aigestudio.wheelpicker.WheelPicker;
 import com.belenos.udacitycapstone.data.DbContract;
+import com.belenos.udacitycapstone.network.FetchLanguageTask;
 import com.belenos.udacitycapstone.utils.TrackedFragment;
+import com.belenos.udacitycapstone.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +56,7 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
     @BindView(R.id.call_to_action_textview) TextView mCallToActionTextView;
     @BindView(R.id.wheel_picker) WheelPicker mWheelPicker;
     @BindView(R.id.flag_image_view) ImageView mFlagImageView;
+    @BindView(R.id.progress_bar) ProgressBar mProgressBar;
 
     private String mDisplayName = "";
 
@@ -104,6 +109,8 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
         mDisplayName = preferences.getString(LoginActivity.KEY_GOOGLE_GIVEN_NAME, null);
         mUserGoogleId = preferences.getString(LoginActivity.KEY_GOOGLE_ID, null);
         mUserId = preferences.getLong(LoginActivity.KEY_USER_ID, 0);
+
+        ((MainActivity) getActivity()).mLanguageDataLoaded = false;
     }
 
     @Override
@@ -144,6 +151,15 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
         }
     }
 
+
+    @Override
+    public void onResume() {
+        Log.d(LOG_TAG, "in onResume");
+        super.onResume();
+        ((MainActivity) getActivity()).mLanguageDataLoaded = false;
+        getLoaderManager().restartLoader(LANGUAGES_LOADER, null, this);
+    }
+
     @Override
     public void onDetach() {
         super.onDetach();
@@ -165,7 +181,7 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Log.d(LOG_TAG, "in onCreateLoader");
-        Uri uri = DbContract.LanguageEntry.buildLanguagesUri();
+        Uri uri = DbContract.LanguageEntry.buildLanguagesNotLearnedByUserUri(mUserId);
         // We don't really care about the sort order but we want to be consistent.
         String sortOrder = DbContract.LanguageEntry.COLUMN_NAME + " ASC";
         return new CursorLoader(getActivity(), uri, LANGUAGES_COLUMNS, null, null, sortOrder);
@@ -197,6 +213,12 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
             // Set the flag icon to the current position.
             // The flag changes 'onItemSelected' but we need to initialize it.
             int position = mWheelPicker.getCurrentItemPosition();
+            if (position == -1) {
+                // This can happen when we arrive to this fragment using the back button.
+                // The wheel does not have any current item so it returns -1.
+                mWheelPicker.setSelectedItemPosition(0);
+                position = 0;
+            }
             String iconName = mWheelDataIconNames.get(position);
             mFlagImageView.setImageResource(getResources()
                     .getIdentifier(iconName, "drawable", getContext().getPackageName()));
@@ -230,20 +252,38 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
 
     @OnClick(R.id.start_learning_button)
     public void onStartLearning() {
-        // TODO: do something smart when the user already added the language. Mb a message (toast?) and cancel?
-
+        Log.d(LOG_TAG, "in onStartLearning");
         // 1. Add the language to the user's list of languages.
-        //TODO: not on UI thread? Well we want it to show up on the next screen so...-> Nope, we wont show the Home Screen right after onboarding.
+        // 2.download data for the language.
+        // 3.launch the game with the right language... Only once the data is downloaded!
+
+        if(!Utils.isNetworkAvailable(getActivity())) {
+            Log.d(LOG_TAG, "Canceling startLearning because there's no network!");
+            Toast.makeText(getContext(), getString(R.string.no_network_cant_add_language), Toast.LENGTH_LONG).show();
+            return;
+        }
+
         int position = mWheelPicker.getCurrentItemPosition();
-        long languageSelectedId = mWheelDataIds.get(position);
-        String languageSelectedName = (String) mWheelPicker.getData().get(position);
-        ContentValues contentValues = new ContentValues();
+        final long languageSelectedId = mWheelDataIds.get(position);
+        final String languageSelectedName = (String) mWheelPicker.getData().get(position);
+        final ContentValues contentValues = new ContentValues();
         contentValues.put(DbContract.UserLanguageEntry.COLUMN_LANGUAGE_ID, languageSelectedId);
         contentValues.put(DbContract.UserLanguageEntry.COLUMN_USER_ID, mUserId);
-        Uri returnUri = getContext().getContentResolver().insert(DbContract.UserLanguageEntry.CONTENT_URI, contentValues);
 
-        // TODO: 2.download data for the language.
-        // TODO: 3.launch the game with the right language.
-        mListener.onLanguageSelected(languageSelectedName, languageSelectedId);
+        FetchLanguageTask fetchLanguageTask = new FetchLanguageTask(
+                (MainActivity) getActivity(), languageSelectedName, mProgressBar, new FetchLanguageTask.OnPostExecuteCallback(){
+
+            @Override
+            public void onPostExecute() {
+                // We associate the language with the user ONLY if we successfully downloaded the data.
+                getContext().getContentResolver().insert(DbContract.UserLanguageEntry.CONTENT_URI, contentValues);
+
+                mProgressBar.setVisibility(View.GONE);
+                mListener.onLanguageSelected(languageSelectedName, languageSelectedId);
+
+            }
+        });
+
+        fetchLanguageTask.execute();
     }
 }

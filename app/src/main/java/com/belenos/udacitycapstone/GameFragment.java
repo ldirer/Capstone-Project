@@ -3,8 +3,10 @@ package com.belenos.udacitycapstone;
 import android.animation.Animator;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -62,8 +64,11 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
     };
 
 
-    public static final int COL_LANGUAGE_ID = 0;
-    public static final int COL_WORD_ID = 1;
+
+
+
+    public static final int COL_WORD_ID = 0;
+    public static final int COL_LANGUAGE_ID = 1;
     public static final int COL_WORD = 2;
     public static final int COL_TRANSLATION = 3;
     private static final int LOADER_ID = 1;
@@ -132,6 +137,11 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
 
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -145,6 +155,8 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
         updateWordViews();
         mTranslatedTextview.setVisibility(View.INVISIBLE);
         mCardState = FRONT_SHOWN_STATE;
+
+
         return view;
     }
 
@@ -263,9 +275,24 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
     @OnClick(R.id.check_answer_button)
     public void checkUserAnswer() {
         String userAnswer = mAnswerEdittext.getText().toString();
+        String sanitizedAnswer = Utils.sanitizeString(userAnswer);
+
 
         // Later on we could imagine having a more tolerant system to check the result, for instance correct if levenstein distance < 1.
-        if (userAnswer.equals(mWordTranslated)) {
+        // Capital letters matter in some languages (for instance German), but we dont care for now.
+        boolean success = sanitizedAnswer.equals(mWordTranslated.toLowerCase());
+
+        // Log attempt data in database
+        ContentValues attemptCV = new ContentValues();
+        attemptCV.put(DbContract.AttemptEntry.COLUMN_SUCCESS, success ? 1 : 0);
+        attemptCV.put(DbContract.AttemptEntry.COLUMN_TIMESTAMP, System.currentTimeMillis());
+        attemptCV.put(DbContract.AttemptEntry.COLUMN_USER_ID, mUserId);
+        attemptCV.put(DbContract.AttemptEntry.COLUMN_WORD_ID, mWordToTranslateId);
+        attemptCV.put(DbContract.AttemptEntry.COLUMN_LANGUAGE_ID, mLanguageId);
+
+        getContext().getContentResolver().insert(DbContract.AttemptEntry.CONTENT_URI, attemptCV);
+
+        if (success) {
             // We want to:
             // 1. Congratulate the user!
             // 2. Change the card to a new one. = Restarting the loader and maybe launch an animation. TODO
@@ -277,6 +304,7 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
             Toast.makeText(getContext(), R.string.answer_incorrect_toast, Toast.LENGTH_LONG).show();
         }
     }
+
 
     @Override
     public void onAttach(Context context) {
@@ -298,7 +326,10 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Log.d(LOG_TAG, "in onCreateLoader");
-        Uri uri = DbContract.WordEntry.buildWordUri(Utils.getNextWordId(mWordToTranslateId, mLanguageId, mUserId));
+        if(!((MainActivity) getActivity()).mLanguageDataLoaded) {
+
+        }
+        Uri uri = DbContract.WordEntry.buildWordUri(Utils.getNextWordId(getContext(), mWordToTranslateId, mLanguageId, mUserId));
         return new CursorLoader(getActivity(), uri, WORD_COLUMNS, null, null, null);
     }
 

@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.belenos.udacitycapstone.data.DbContract;
 import com.belenos.udacitycapstone.utils.TrackedFragment;
@@ -101,6 +102,11 @@ public class HomeFragment extends TrackedFragment implements LoaderManager.Loade
 
 
     @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnFragmentInteractionListener) {
@@ -120,8 +126,7 @@ public class HomeFragment extends TrackedFragment implements LoaderManager.Loade
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Log.d(LOG_TAG, "in onCreateLoader");
-        //TODO: use actual user id in query
-        Uri uri = DbContract.UserEntry.buildLanguagesForUserUri(1);
+        Uri uri = DbContract.UserEntry.buildLanguagesForUserUri(mUserId);
         // We don't really care about the sort order but we want to be consistent.
         String sortOrder = DbContract.LanguageEntry.TABLE_NAME + "." + DbContract.LanguageEntry.COLUMN_NAME + " ASC";
         return new CursorLoader(getActivity(), uri, LANGUAGES_FOR_USER_COLUMNS, null, null, sortOrder);

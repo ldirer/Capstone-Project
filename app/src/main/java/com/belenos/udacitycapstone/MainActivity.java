@@ -4,7 +4,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.Button;
 
 import butterknife.BindView;
@@ -18,7 +20,10 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
     public static final String FRAGMENT_ARG_LANGUAGE_NAME = "LANGUAGE_NAME";
     public static final String FRAGMENT_ARG_LANGUAGE_ID = "LANGUAGE_ID";
 
+    public boolean mLanguageDataLoaded = false;
+
     @BindView(R.id.sign_in_different_account_button) Button mSwitchAccountButton;
+    @BindView(R.id.toolbar) Toolbar mToolbar;
 
 
     @Override
@@ -36,6 +41,10 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         ft.commit();
 
         ButterKnife.bind(this);
+        setSupportActionBar(mToolbar);
+
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        mToolbar.setNavigationIcon(R.drawable.ic_menu_home);
     }
 
 
@@ -72,6 +81,13 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
     @Override
     public void onLanguageSelected(String languageName, long languageId) {
         // TODO; make sure we replace the fragment cleanly
+        startGameFragment(languageName, languageId);
+    }
+
+
+
+
+    public void startGameFragment(String languageName, long languageId) {
         android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         GameFragment fragment = GameFragment.newInstance(mSwitchAccountButton);
         Bundle args = new Bundle();
@@ -81,5 +97,25 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         ft.replace(R.id.fragment_frame_layout, fragment, "game");
         ft.addToBackStack(null);
         ft.commit();
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        if (id == android.R.id.home) {
+            Log.d(LOG_TAG, "action bar clicked");
+            android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            HomeFragment fragment = HomeFragment.newInstance();
+            ft.replace(R.id.fragment_frame_layout, fragment, "home");
+            ft.addToBackStack(null);
+            ft.commit();
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }

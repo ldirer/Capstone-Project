@@ -25,4 +25,7 @@
 
     <string name="answer_correct_toast">Correct!</string>
     <string name="answer_incorrect_toast">That\'s not it! Try again or flip the card if you can\'t remember!</string>
+    <string name="no_network_cant_add_language">You need to be connected to the internet to start learning a new language!</string>
+    <string name="error_invalid_response">Sorry, the data we could not fetch proper data from our server.</string>
+    <string name="error_server_down">Sorry, our server seems to be down and we can\'t get language data from it.</string>
 </resources>

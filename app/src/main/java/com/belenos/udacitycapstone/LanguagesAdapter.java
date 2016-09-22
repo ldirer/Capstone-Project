@@ -18,7 +18,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Optional;
 
-public class LanguagesAdapter extends RecyclerView.Adapter<LanguagesAdapter.LanguagesAdapterViewHolder> {
+class LanguagesAdapter extends RecyclerView.Adapter<LanguagesAdapter.LanguagesAdapterViewHolder> {
 
     private static final String LOG_TAG = LanguagesAdapter.class.getSimpleName();
     private static final int ADD_A_LANGUAGE_VIEW_TYPE = 100;
@@ -28,7 +28,7 @@ public class LanguagesAdapter extends RecyclerView.Adapter<LanguagesAdapter.Lang
     private HomeFragment mFragment;
 
 
-    public LanguagesAdapter(Context context, HomeFragment fragment) {
+    LanguagesAdapter(Context context, HomeFragment fragment) {
         super();
         mContext = context;
         mFragment = fragment;
@@ -69,12 +69,21 @@ public class LanguagesAdapter extends RecyclerView.Adapter<LanguagesAdapter.Lang
 
         mCursor.moveToPosition(position);
         String iconName = mCursor.getString(HomeFragment.COL_LANGUAGES_FOR_USER_ICON_NAME);
-        String language = mCursor.getString(HomeFragment.COL_LANGUAGES_FOR_USER_NAME);
+        final String languageName = mCursor.getString(HomeFragment.COL_LANGUAGES_FOR_USER_NAME);
+        final Long languageId = mCursor.getLong(HomeFragment.COL_LANGUAGES_FOR_USER_ID);
 
-        holder.mLanguageTextView.setText(language);
+        holder.mLanguageTextView.setText(languageName);
         holder.mFlagImageView.setImageResource(
                 mContext.getResources()
                         .getIdentifier(iconName, "drawable", mContext.getPackageName()));
+
+
+        holder.mResumeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MainActivity) mFragment.getActivity()).startGameFragment(languageName, languageId);
+            }
+        });
     }
 
     @Override
@@ -94,7 +103,7 @@ public class LanguagesAdapter extends RecyclerView.Adapter<LanguagesAdapter.Lang
         }
     }
 
-    public void swapCursor(Cursor newCursor) {
+    void swapCursor(Cursor newCursor) {
         mCursor = newCursor;
         notifyDataSetChanged();
         // TODO: add an empty view
@@ -105,21 +114,24 @@ public class LanguagesAdapter extends RecyclerView.Adapter<LanguagesAdapter.Lang
         return mCursor;
     }
 
-    public class LanguagesAdapterViewHolder extends RecyclerView.ViewHolder {
+    class LanguagesAdapterViewHolder extends RecyclerView.ViewHolder {
 
+
+        // We make everything nullable because we handle 2 different view types.
+        // This is hackish, pbbly not the ideal solution.
         @Nullable @BindView(R.id.language_item_flag_imageview) ImageView mFlagImageView;
         @Nullable @BindView(R.id.language_item_language_textview) TextView mLanguageTextView;
         @Nullable @BindView(R.id.language_item_resume_button) Button mResumeButton;
 
 
-        public LanguagesAdapterViewHolder(View itemView) {
+        LanguagesAdapterViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
 
         @Optional
         @OnClick(R.id.add_a_language)
-        public void addLanguage() {
+        void addLanguage() {
             Log.d(LOG_TAG, "in addLanguage");
             // Use the fragment interaction interface to communicate with the activity.
             ((MainActivity) mFragment.getActivity()).onAddLanguage();

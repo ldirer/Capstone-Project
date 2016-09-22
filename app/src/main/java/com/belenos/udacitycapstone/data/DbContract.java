@@ -25,6 +25,8 @@ public class DbContract {
     public static final String PATH_LANGUAGES = "languages";
     public static final String PATH_USER_LANGUAGE = "user_language";
     public static final String PATH_WORD = "word";
+    public static final String PATH_ATTEMPT = "attempt";
+
 
     public static final class UserEntry implements BaseColumns {
         public static final String TABLE_NAME = "user";
@@ -66,11 +68,19 @@ public class DbContract {
         public static final String COLUMN_NAME = "name";
         public static final String COLUMN_ICON_NAME = "icon_name";
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_LANGUAGE).build();
+        public static final String NOT_USER_PATH_SEGMENT = "notuser";
 
         public static Uri buildLanguagesUri() {
             return BASE_CONTENT_URI.buildUpon().appendPath(PATH_LANGUAGES).build();
         }
 
+
+        public static Uri buildLanguagesNotLearnedByUserUri(long mUserId) {
+            return buildLanguagesUri().buildUpon()
+                    .appendPath(NOT_USER_PATH_SEGMENT)
+                    .appendQueryParameter(UserLanguageEntry.COLUMN_USER_ID, String.valueOf(mUserId))
+                    .build();
+        }
     }
 
 
@@ -98,7 +108,7 @@ public class DbContract {
         public static final String COLUMN_TRANSLATION = "translation";
 
 
-        private static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_WORD).build();
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_WORD).build();
 
 
         public static Uri buildWordUri(long id) {
@@ -108,14 +118,27 @@ public class DbContract {
         public static String getIdFromUri(Uri uri) {
             return uri.getPathSegments().get(1);
         }
+
     }
 
     public static final class AttemptEntry implements BaseColumns {
         public static final String TABLE_NAME = "attempt";
 
-        public static final String COLUMN_WORD_ID = "word_id";
         public static final String COLUMN_USER_ID = "user_id";
+        public static final String COLUMN_WORD_ID = "word_id";
+        // We repeat language id here: it's not necessary, we do it to get a faster query (no join required) on the Attempt table.
+        public static final String COLUMN_LANGUAGE_ID = "language_id";
         public static final String COLUMN_SUCCESS = "success";
         public static final String COLUMN_TIMESTAMP = "timestamp";
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_ATTEMPT).build();
+
+
+        // Computed fields by group by on word_id
+        public static final String COMPUTED_SUCCESS_RATE = "success_rate";
+        public static final String COMPUTED_ATTEMPT_COUNT = "attempt_count";
+
+        public static Uri buildAttemptUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
     }
 }

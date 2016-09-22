@@ -1,22 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Note that all childs have clickable set to false so the click events are handled by the linear layout. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/add_a_language"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-        <TextView
+    android:layout_height="match_parent"
+    >
+        <Space
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/start_learning_new"
-            android:gravity="center"
+            android:clickable="false"
             />
-
-        <Button
-            android:id="@+id/add_a_language"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@android:drawable/ic_menu_add"
+            android:text="@string/start_learning_new"
+            android:clickable="false"
+            />
+
+        <!-- We set minWidth and minHeight on the button to avoid stretching of the icon -->
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:background="@android:drawable/ic_input_add"
+            android:clickable="false"
+            />
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clickable="false"
             />
 
 </LinearLayout>
