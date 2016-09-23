@@ -6,7 +6,6 @@ import android.animation.AnimatorSet;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,7 +16,6 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.CardView;
-import android.text.Editable;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,9 +30,6 @@ import com.belenos.udacitycapstone.data.DbContract;
 import com.belenos.udacitycapstone.utils.TrackedFragment;
 import com.belenos.udacitycapstone.utils.Utils;
 import com.google.android.gms.analytics.Tracker;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

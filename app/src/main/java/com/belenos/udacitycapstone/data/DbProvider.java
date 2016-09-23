@@ -27,7 +27,6 @@ public class DbProvider extends ContentProvider {
     private static final int LANGUAGES = 101;
     private static final int USER = 102;
     private static final int USER_LANGUAGE = 103;
-    private static final int USER_BY_GOOGLE_ID = 104;
     private static final int USER_ID = 105;
     private static final int WORD = 106;
     private static final int WORD_ID = 107;
@@ -95,7 +94,6 @@ public class DbProvider extends ContentProvider {
 
 
     }
-
 
     //user._id = ?
     private static final String sUserSelection = UserEntry.TABLE_NAME + "." + UserEntry._ID + " = ? ";
@@ -178,6 +176,11 @@ public class DbProvider extends ContentProvider {
             }
             case LANGUAGES: {
                 retCursor = getLanguages(uri, projection, sortOrder);
+                break;
+            }
+            case USER: {
+                // That's our only use case for this endpoint atm.
+                retCursor = getUserByGoogleId(uri, projection, sortOrder);
                 break;
             }
             case USER_ID: {
@@ -283,6 +286,7 @@ public class DbProvider extends ContentProvider {
     }
 
     private Cursor getUserByGoogleId(Uri uri, String[] projection, String sortOrder) {
+        Log.d(LOG_TAG, "in getUserByGoogleId with uri=" + uri.toString());
         String[] selectionArgs = {uri.getQueryParameter(UserEntry.COLUMN_GOOGLE_ID)};
         return sUsersQueryBuilder.query(mDbHelper.getReadableDatabase(),
                 projection,

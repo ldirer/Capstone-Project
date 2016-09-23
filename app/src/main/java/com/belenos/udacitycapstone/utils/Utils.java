@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.belenos.udacitycapstone.data.DbContract;
@@ -18,25 +17,13 @@ import java.util.List;
 public class Utils {
 
     private static final String LOG_TAG = Utils.class.getSimpleName();
-    private static long mFakeItIndex = 0;
+
     public static long getNextWordId(Context context, Long mWordToTranslateId, long mLanguageId, long mUserId) {
-        // TODO: smart stuff to get the id of the next word we want to show.
         Uri uri = DbContract.AttemptEntry.CONTENT_URI.buildUpon()
                 .appendPath("by_user_language")
                 .appendQueryParameter(DbContract.WordEntry.COLUMN_LANGUAGE_ID, String.valueOf(mLanguageId))
                 .appendQueryParameter(DbContract.AttemptEntry.COLUMN_USER_ID, String.valueOf(mUserId))
                 .build();
-//
-//
-//
-//
-//        Cursor wordsCursor = context.getContentResolver().query(uri, null, null, null, null);
-//
-//        if (wordsCursor == null || !wordsCursor.moveToFirst()) {
-//            Log.e(LOG_TAG, String.format("Failed to fetch any words for language id %d", mLanguageId));
-//            return 1;
-//        }
-
 
         String[] projection = {
                 DbContract.WordEntry.TABLE_NAME + "." + DbContract.WordEntry._ID,
@@ -49,8 +36,6 @@ public class Utils {
 
 
         Cursor wordsWithAttemptsCursor = context.getContentResolver().query(uri, projection, null, null, null);
-
-//        Cursor attemptsCursor = context.getContentResolver().query(DbContract.AttemptEntry.CONTENT_URI, projection, null, null, null);
 
         if(wordsWithAttemptsCursor == null) {
             Log.e(LOG_TAG, String.format("Failed to fetch attempts for languageId, userId: %d, %d", mLanguageId, mUserId));
@@ -80,12 +65,6 @@ public class Utils {
 
         ArrayList<Float> distribution = (ArrayList<Float>) getProbabilityDistribution(attemptsWordIdArray, attemptsCountArray, attemptsSuccessRateArray, nWordsSeenByUser, totalSuccessRatesInverse);
 
-
-//        long wordId = wordsCursor.getLong(0);
-//        while (mWordToTranslateId != null && wordId == mWordToTranslateId && wordsCursor.moveToNext()) {
-//            wordId = wordsCursor.getLong(0);
-//        }
-
         int i = randomDrawIndex(distribution);
         long wordId = attemptsWordIdArray.get(i);
         // We want a word id that's different from the one we just showed.
@@ -95,9 +74,6 @@ public class Utils {
             wordId = attemptsWordIdArray.get(i);
         }
 
-
-//        attemptsCursor.close();
-//        wordsCursor.close();
         wordsWithAttemptsCursor.close();
         return wordId;
     }

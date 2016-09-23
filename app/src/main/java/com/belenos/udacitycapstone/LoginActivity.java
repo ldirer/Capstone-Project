@@ -15,8 +15,10 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.belenos.udacitycapstone.data.DbContract;
+import com.belenos.udacitycapstone.network.MySyncAdapter;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.auth.api.Auth;
@@ -167,7 +169,13 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                         .putString(KEY_GOOGLE_ID, acct.getId())
                         .apply();
 
-                // TODO: move that out of the UI thread?
+
+
+
+
+
+                // Note we could use AsyncQueryHandler to move the insert out of the UI thread.
+                // Not sure the performance gain would be huge though.
                 ContentValues userCV = new ContentValues();
                 userCV.put(DbContract.UserEntry.COLUMN_NAME, acct.getDisplayName());
                 userCV.put(DbContract.UserEntry.COLUMN_GOOGLE_ID, acct.getId());
@@ -187,20 +195,19 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                             null,
                             null,
                             null);
-                    assert c != null;
                     c.moveToFirst();
                     long userId = c.getLong(0);
                     c.close();
                     preferences.edit().putLong(KEY_USER_ID, userId).apply();
+                    MySyncAdapter.syncImmediately(this);
                 }
                 else {
                     Log.e(LOG_TAG, "userUri is null! We could not insert nor retrieve a matching Google id...");
+                    Toast.makeText(this, R.string.error_insert_user, Toast.LENGTH_LONG).show();
+                    return;
                 }
 
-
                 Intent intent = new Intent(this, MainActivity.class);
-                intent.putExtra(KEY_GOOGLE_GIVEN_NAME, acct.getDisplayName());
-                intent.putExtra(KEY_GOOGLE_ID, acct.getId());
                 startActivity(intent);
             }
         } else {

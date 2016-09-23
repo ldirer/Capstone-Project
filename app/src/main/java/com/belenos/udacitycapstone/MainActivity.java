@@ -1,13 +1,18 @@
 package com.belenos.udacitycapstone;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Button;
+
+import com.belenos.udacitycapstone.data.DbContract;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -32,17 +37,27 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         Log.d(LOG_TAG, "in onCreate");
         setContentView(R.layout.activity_main);
 
-        android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
 
-        // TODO: move fragment id to a variable (or delete it altogether).
-        OnboardingFragment fragment = OnboardingFragment.newInstance();
-        ft.replace(R.id.fragment_frame_layout, fragment, "onboarding");
-        ft.addToBackStack(null);
-        ft.commit();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        Long userId = preferences.getLong(LoginActivity.KEY_USER_ID, 0);
+
+
+        Cursor languagesCursor = getContentResolver().query(DbContract.UserEntry.buildLanguagesForUserUri(userId), null, null, null, null);
+        if(languagesCursor != null && languagesCursor.getCount() > 0) {
+            launchHomeFragment();
+            languagesCursor.close();
+        }
+        else {
+            android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            OnboardingFragment fragment = OnboardingFragment.newInstance();
+            ft.replace(R.id.fragment_frame_layout, fragment);
+            ft.addToBackStack(null);
+            ft.commit();
+        }
 
         ButterKnife.bind(this);
-        setSupportActionBar(mToolbar);
 
+        setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         mToolbar.setNavigationIcon(R.drawable.ic_menu_home);
     }
@@ -59,6 +74,15 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
     @Override
     public void onFragmentInteraction(Uri uri) {
         // Do smt.
+    }
+
+
+    public void launchHomeFragment() {
+        android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        HomeFragment fragment = HomeFragment.newInstance();
+        ft.replace(R.id.fragment_frame_layout, fragment, "home");
+        ft.addToBackStack(null);
+        ft.commit();
     }
 
     /**
@@ -109,11 +133,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
 
         if (id == android.R.id.home) {
             Log.d(LOG_TAG, "action bar clicked");
-            android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            HomeFragment fragment = HomeFragment.newInstance();
-            ft.replace(R.id.fragment_frame_layout, fragment, "home");
-            ft.addToBackStack(null);
-            ft.commit();
+            launchHomeFragment();
         }
 
         return super.onOptionsItemSelected(item);

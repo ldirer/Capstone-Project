@@ -26,6 +26,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+/**
+ * A task to fetch all data we have about a language.
+ * Basically the language words with translation.
+ *
+ */
 public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
 
     private static final String LOG_TAG = FetchLanguageTask.class.getSimpleName();
@@ -40,10 +45,7 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
     private String mLanguageName;
 
     // I tried port forwarding to use localhost using chrome://inspect but it did not work.
-//    private String mServerUrl = "http://3cc85208.ngrok.io";
-
-    private String mServerUrl = "http://ffdsjkqhf1238103nfdjssqlfjheiqufhei.org/get?name=roger";
-
+    private String mServerUrl;
 
     public FetchLanguageTask(MainActivity activity, String languageName, ProgressBar progressBar, OnPostExecuteCallback onPostExecuteCallback) {
         super();
@@ -51,6 +53,7 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
         mLanguageName = languageName;
         mProgressBar = progressBar;
         mOnPostExecuteCallback = onPostExecuteCallback;
+        mServerUrl = mActivity.getString(R.string.server_url);
     }
 
     @Override
@@ -158,6 +161,10 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
         }
     }
 
+
+    /**
+     * Note that this method can (and will) be called to parse an array of languages with *only one language*.
+     */
     private void parseLanguages(String languagesJsonStr) throws JSONException {
         JSONObject languagesJson = new JSONObject(languagesJsonStr);
 
@@ -166,9 +173,6 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
         for (int i = 0; i < languagesArray.length(); i++) {
             JSONObject languageJson = languagesArray.getJSONObject(i);
             parseLanguage(languageJson);
-            ContentValues langValues = new ContentValues();
-            String LANG_NAME = "LANG_NAME";
-            langValues.put(DbContract.LanguageEntry.COLUMN_NAME, languageJson.getString(LANG_NAME));
         }
 
     }

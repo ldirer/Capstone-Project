@@ -29,4 +29,7 @@
     <string name="error_invalid_response">Sorry, the data we could not fetch proper data from our server.</string>
     <string name="error_server_down">Sorry, our server seems to be down and we can\'t get language data from it.</string>
     <string name="title_widget">Keep learning!</string>
+    <string name="sync_account_type">udacitycapstone.belenos.com</string>
+    <string name="error_insert_user">Sorry, something went wrong and we could not log you in.</string>
+    <string name="server_url">http://3cc85208.ngrok.io</string>
 </resources>
