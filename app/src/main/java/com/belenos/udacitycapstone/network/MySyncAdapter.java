@@ -93,7 +93,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * First we do a probing request to the server with the user google id and the last timestamp we have for data about this user.
      * The server tells us whether it has fresher data or needs sync, along with urls to get the data/post it.
-     *
      */
     @Override
     public void onPerformSync(Account account, Bundle bundle, String s, ContentProviderClient contentProviderClient, SyncResult syncResult) {
@@ -119,14 +118,12 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         if (lastUpdateCursor != null && lastUpdateCursor.moveToFirst()) {
             lastUpdateUnix = lastUpdateCursor.getLong(0);
             lastUpdateCursor.close();
-        }
-        else {
+        } else {
             Log.d(LOG_TAG, "User language and attempt table appear to be empty");
             if (lastUpdateCursor == null) {
                 Log.d(LOG_TAG, "Sync failed due to some cursor being null.");
                 return;
-            }
-            else {
+            } else {
                 // Setting the last update to 0 is a big deal: if we do it by mistake, the server will send us all its data.
                 // I tried to make the sync more robust by using database constraints so wrong updates will fail and won't corrupt the db.
                 lastUpdateUnix = 0;
@@ -229,10 +226,9 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 
         try {
             Response response = client.newCall(request).execute();
-            if(!response.isSuccessful()) {
+            if (!response.isSuccessful()) {
                 Log.e(LOG_TAG, "Failed in our PATCH request to send user data to server. Response body:" + response.body().string());
-            }
-            else {
+            } else {
                 Log.i(LOG_TAG, "Great success! Synced freshest client user data with the server.");
             }
         } catch (IOException e) {
@@ -322,10 +318,9 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 
         try {
             Response response = client.newCall(request).execute();
-            if(!response.isSuccessful()) {
+            if (!response.isSuccessful()) {
                 Log.e(LOG_TAG, "Failed to post user to server. Response body:" + response.body().string());
-            }
-            else {
+            } else {
                 Log.i(LOG_TAG, "Successfully posted user to server.");
             }
         } catch (IOException e) {
@@ -336,7 +331,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
     private void syncDataFromUrls(JSONObject urls, OkHttpClient client, long userId) throws JSONException {
         Log.d(LOG_TAG, String.format("urls: %s", urls.toString()));
         Iterator<String> keys = urls.keys();
-        while(keys.hasNext()) {
+        while (keys.hasNext()) {
             String objectType = keys.next();
             String urlStr = urls.getString(objectType);
             Log.d(LOG_TAG, String.format("OBJECT TYPE / URL STRING: %s / %s", objectType, urlStr));
@@ -345,7 +340,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     /**
-     * @param urlStr: The url we want to GET
+     * @param urlStr:     The url we want to GET
      * @param objectType: the type of object we'll get: allows choosing the right parser.
      */
     private void syncFromUrl(String urlStr, String objectType, OkHttpClient client, long userId, int page) {
@@ -440,24 +435,49 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
             JSONObject userLanguageJson = userLanguages.getJSONObject(j);
 
             ContentValues userLanguageValues = new ContentValues();
-            userLanguageValues.put(UserLanguageEntry.COLUMN_LANGUAGE_ID, userLanguageJson.getString(UserLanguageEntry.COLUMN_LANGUAGE_ID));
+            long languageId = userLanguageJson.getLong(UserLanguageEntry.COLUMN_LANGUAGE_ID);
+            userLanguageValues.put(UserLanguageEntry.COLUMN_LANGUAGE_ID, languageId);
             // We can't take the user id from the json response since it may not match the one we have locally!
             userLanguageValues.put(UserLanguageEntry.COLUMN_USER_ID, userId);
             long unixTimestamp = Utils.getUnixTimestamp(userLanguageJson.getString(UserLanguageEntry.COLUMN_CREATED_TIMESTAMP));
             userLanguageValues.put(UserLanguageEntry.COLUMN_CREATED_TIMESTAMP, unixTimestamp);
 
-            cVVector.add(userLanguageValues);
+            // Just to be sure we check that we have words for the language we want to add to the user.
+            // If not we download the required data.
+            Cursor wordCursor = getContext().getContentResolver().query(DbContract.WordEntry.CONTENT_URI,
+                    null,
+                    DbContract.WordEntry.COLUMN_LANGUAGE_ID + "= ?",
+                    new String[]{String.valueOf(languageId)},
+                    null);
 
-            // add to database
-            if ( cVVector.size() > 0 ) {
-                ContentValues[] cvArray = new ContentValues[cVVector.size()];
-                cVVector.toArray(cvArray);
-                mContext.getContentResolver().bulkInsert(DbContract.UserLanguageEntry.CONTENT_URI, cvArray);
+            if (wordCursor != null) {
+                if (wordCursor.getCount() == 0) {
+                    Log.d(LOG_TAG, "Downloading language data ");
+                    String languageName = userLanguageJson.getString("language_name");
+                    FetchLanguageTask fetchLanguageTask = new FetchLanguageTask(
+                            getContext(), languageName, null,
+                            new FetchLanguageTask.OnPostExecuteCallback() {
+                                @Override
+                                public void onPostExecute() {
+                                }
+                            });
+                    fetchLanguageTask.execute();
+                }
+                wordCursor.close();
             }
-            Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
-            // Signal that we're done loading data. TODO: do i need to do smt here? Like notify content resolver stuff? Dont think so, should be done in the insert.
+
+            cVVector.add(userLanguageValues);
         }
+
+        // add to database
+        if (cVVector.size() > 0) {
+            ContentValues[] cvArray = new ContentValues[cVVector.size()];
+            cVVector.toArray(cvArray);
+            mContext.getContentResolver().bulkInsert(UserLanguageEntry.CONTENT_URI, cvArray);
+        }
+        Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
     }
+
 
     /**
      * Takes a JSON response containing attempts for the relevant `userId`, parse and add
@@ -489,7 +509,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
             cVVector.add(attemptValues);
 
             // add to database
-            if ( cVVector.size() > 0 ) {
+            if (cVVector.size() > 0) {
                 ContentValues[] cvArray = new ContentValues[cVVector.size()];
                 cVVector.toArray(cvArray);
                 mContext.getContentResolver().bulkInsert(AttemptEntry.CONTENT_URI, cvArray);
@@ -522,6 +542,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * From sunshine app.
      * Helper method to have the sync adapter sync immediately
+     *
      * @param context The context used to access the account service
      */
     public static void syncImmediately(Context context) {
@@ -551,7 +572,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
                 context.getString(R.string.app_name), context.getString(R.string.sync_account_type));
 
         // If the password doesn't exist, the account doesn't exist
-        if ( null == accountManager.getPassword(newAccount) ) {
+        if (null == accountManager.getPassword(newAccount)) {
 
         /*
          * Add the account and account type, no password or user data

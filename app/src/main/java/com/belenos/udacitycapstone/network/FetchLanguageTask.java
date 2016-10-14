@@ -1,13 +1,14 @@
 package com.belenos.udacitycapstone.network;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.belenos.udacitycapstone.MainActivity;
 import com.belenos.udacitycapstone.R;
 import com.belenos.udacitycapstone.data.DbContract;
 import com.belenos.udacitycapstone.utils.Utils;
@@ -38,7 +39,7 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
     private static final int ERROR_SERVER_DOWN = 1;
     private static final int ERROR_INVALID_RESPONSE = 2;
 
-    private MainActivity mActivity;
+    private Context mContext;
     private ProgressBar mProgressBar;
     private OnPostExecuteCallback mOnPostExecuteCallback;
     private String mLanguageName;
@@ -46,20 +47,24 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
     // I tried port forwarding to use localhost using chrome://inspect but it did not work.
     private String mServerUrl;
 
-    public FetchLanguageTask(MainActivity activity, String languageName, ProgressBar progressBar, OnPostExecuteCallback onPostExecuteCallback) {
+    public FetchLanguageTask(Context context, String languageName,
+                             @Nullable ProgressBar progressBar,
+                             OnPostExecuteCallback onPostExecuteCallback) {
         super();
-        mActivity = activity;
+        mContext = context;
         mLanguageName = languageName;
         mProgressBar = progressBar;
         mOnPostExecuteCallback = onPostExecuteCallback;
-        mServerUrl = mActivity.getString(R.string.server_host);
+        mServerUrl = mContext.getString(R.string.server_host);
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        mProgressBar.setProgress(0);
-        mProgressBar.setVisibility(View.VISIBLE);
+        if (mProgressBar != null) {
+            mProgressBar.setProgress(0);
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -122,13 +127,12 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
 
             cVVector.add(wordValues);
 
-
             // add to database
             if ( cVVector.size() > 0 ) {
                 ContentValues[] cvArray = new ContentValues[cVVector.size()];
                 cVVector.toArray(cvArray);
                 // Note we have a ON CONFLICT IGNORE clause on the _id so we dont have duplicates.
-                mActivity.getContentResolver().bulkInsert(DbContract.WordEntry.CONTENT_URI, cvArray);
+                mContext.getContentResolver().bulkInsert(DbContract.WordEntry.CONTENT_URI, cvArray);
             }
             Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
             // Signal that we're done loading language data.
@@ -137,7 +141,6 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
     }
 
     public static interface OnPostExecuteCallback {
-
         void onPostExecute();
     }
 
@@ -147,17 +150,19 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
 
         switch (mErrorStatus) {
             case 0:
-                mProgressBar.setProgress(100);
-                mActivity.mLanguageDataLoaded = true;
                 mOnPostExecuteCallback.onPostExecute();
                 break;
             case ERROR_SERVER_DOWN:
-                mProgressBar.setVisibility(View.GONE);
-                Toast.makeText(mActivity, R.string.error_server_down, Toast.LENGTH_LONG).show();
+                if (mProgressBar != null) {
+                    mProgressBar.setVisibility(View.GONE);
+                }
+                Toast.makeText(mContext, R.string.error_server_down, Toast.LENGTH_LONG).show();
                 break;
             case ERROR_INVALID_RESPONSE:
-                mProgressBar.setVisibility(View.GONE);
-                Toast.makeText(mActivity, R.string.error_invalid_response, Toast.LENGTH_LONG).show();
+                if (mProgressBar != null) {
+                    mProgressBar.setVisibility(View.GONE);
+                }
+                Toast.makeText(mContext, R.string.error_invalid_response, Toast.LENGTH_LONG).show();
                 break;
         }
     }
@@ -182,9 +187,17 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
 
         OkHttpClient client = new OkHttpClient.Builder().addNetworkInterceptor(new StethoInterceptor()).build();
 
+//        HttpUrl url = HttpUrl.parse(mServerUrl + "/api/language" + searchQueryStr);
+
         // We do a search query by name to get the language.
-        String searchQueryStr = String.format("?q={\"filters\":[{\"name\":\"name\",\"op\":\"==\",\"val\":\"%s\"}]}", mLanguageName);
-        HttpUrl url = HttpUrl.parse(mServerUrl + "/api/language" + searchQueryStr);
+        HttpUrl url = new HttpUrl.Builder()
+                .scheme("http")
+                .host(mServerUrl)
+                .addPathSegment("api")
+                .addPathSegment("language")
+                .addQueryParameter("q", String.format("{\"filters\":[{\"name\":\"name\",\"op\":\"==\",\"val\":\"%s\"}]}", mLanguageName))
+                .build();
+
         Request request = new Request.Builder()
                 .url(url)
                 .build();

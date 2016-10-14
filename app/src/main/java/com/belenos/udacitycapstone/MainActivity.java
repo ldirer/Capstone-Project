@@ -10,9 +10,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 
 import com.belenos.udacitycapstone.data.DbContract;
+import com.belenos.udacitycapstone.network.FetchLanguageTask;
 import com.belenos.udacitycapstone.network.MySyncAdapter;
 
 import butterknife.BindView;
@@ -109,8 +111,6 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         // TODO; make sure we replace the fragment cleanly
         startGameFragment(languageName, languageId);
     }
-
-
 
 
     public void startGameFragment(String languageName, long languageId) {

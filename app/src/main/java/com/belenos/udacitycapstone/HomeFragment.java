@@ -45,8 +45,6 @@ public class HomeFragment extends TrackedFragment implements LoaderManager.Loade
     @BindView(R.id.languages_recyclerview) RecyclerView mRecyclerView;
     private LanguagesAdapter mUserLanguagesAdapter;
 
-
-
     // Loader stuff
     private static final int LANGUAGES_FOR_USER_LOADER = 0;
     private static final String[] LANGUAGES_FOR_USER_COLUMNS = {

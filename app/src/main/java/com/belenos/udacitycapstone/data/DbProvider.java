@@ -200,8 +200,13 @@ public class DbProvider extends ContentProvider {
                 break;
             }
             case WORD: {
-                // That's our only use case atm.
-                retCursor = getWordsByLanguage(uri, projection, sortOrder);
+                retCursor = sWordsQueryBuilder.query(mDbHelper.getReadableDatabase(),
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
                 break;
             }
             case USER_LANGUAGE: {
@@ -302,6 +307,13 @@ public class DbProvider extends ContentProvider {
     }
 
 
+    /**
+     * TODO: delete that?
+     * @param uri
+     * @param projection
+     * @param sortOrder
+     * @return
+     */
     private Cursor getWordsByLanguage(Uri uri, String[] projection, String sortOrder) {
         Log.d(LOG_TAG, "in getWordsByLanguage, uri=" + uri.toString());
         String[] selectionArgs = new String[]{uri.getQueryParameter(WordEntry.COLUMN_LANGUAGE_ID)};
