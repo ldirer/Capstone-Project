@@ -1,7 +1,6 @@
 package com.belenos.udacitycapstone.network;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
@@ -53,7 +52,7 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
         mLanguageName = languageName;
         mProgressBar = progressBar;
         mOnPostExecuteCallback = onPostExecuteCallback;
-        mServerUrl = mActivity.getString(R.string.server_url);
+        mServerUrl = mActivity.getString(R.string.server_host);
     }
 
     @Override

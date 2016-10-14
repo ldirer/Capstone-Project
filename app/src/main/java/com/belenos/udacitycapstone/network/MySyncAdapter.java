@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -30,10 +31,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Vector;
 
 import okhttp3.HttpUrl;
@@ -51,7 +53,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
     private String mServerUrl;
 
     private Context mContext;
-
 
     private static final String CLIENT_TO_SERVER_SYNC = "sync_to_server";
     private static final String SERVER_TO_CLIENT_SYNC = "sync_to_client";
@@ -86,7 +87,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
     public MySyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
         mContext = context;
-        mServerUrl = context.getString(R.string.server_url);
+        mServerUrl = context.getString(R.string.server_host);
     }
 
     /**
@@ -102,19 +103,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
                 .addNetworkInterceptor(new StethoInterceptor())
                 .build();
 
-        //TODO
-        // 1. Query to get user with id google_id. Include action=sync in the querystring and last timestamp of data in the body.
-        // The backend will:
-        //   * return everything it has after last timestamp if there's anything.
-        //   * Ask for the data it misses if it's last timestamp is < ours.
-        //   * Ask for ALL THE THINGS if it does not have the user.
-        // Question: How does the server 'Asks'?
-        // -> If it does not have the user, it'll return an empty list and we'll know.
-        // -> If it *does* have the user... It'll return the user with a 'last_action_timestamp' field.
-        // Which we might need to add to the db. -> Well it'll be hard to update on every insert...
-        // We can then compare this timestamp with ours and POST data accordingly.
-
-
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
         String userGoogleId = preferences.getString(LoginActivity.KEY_GOOGLE_ID, "");
         String userName = preferences.getString(LoginActivity.KEY_GOOGLE_GIVEN_NAME, "");
@@ -123,9 +111,9 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         // We want a 10-digit (second precision) unix timestamp.
         long lastUpdateUnix;
 
-//        lastUpdateUnix = System.currentTimeMillis() / 1000;
-//        //Testing: Yesterday... All my trouble...
-//        lastUpdateUnix -= 60 * 60 * 24;
+        // Testing: Yesterday... All my trouble...
+        // lastUpdateUnix = System.currentTimeMillis() / 1000;
+        // lastUpdateUnix -= 60 * 60 * 24;
 
         Cursor lastUpdateCursor = mContext.getContentResolver().query(DbContract.LAST_UPDATE_URI, null, null, null, null);
         if (lastUpdateCursor != null && lastUpdateCursor.moveToFirst()) {
@@ -146,16 +134,19 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 
         }
 
-        String queryStr = String.format(Locale.US, "?user_google_id=%s&last_update_unix=%d",
-                userGoogleId, lastUpdateUnix);
+        HttpUrl url = new HttpUrl.Builder()
+                .scheme("http")
+                .host(mServerUrl)
+                .addPathSegment("polling")
+                .addQueryParameter("user_google_id", userGoogleId)
+                .addQueryParameter("last_update_unix", String.valueOf(lastUpdateUnix))
+                .build();
 
-        HttpUrl url = HttpUrl.parse(mServerUrl + "/polling" + queryStr);
         Log.d(LOG_TAG, String.format("url is: %s", url.toString()));
 
         Request request = new Request.Builder()
                 .url(url)
                 .build();
-
 
         try {
             Response response = client.newCall(request).execute();
@@ -183,8 +174,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
                     Log.d(LOG_TAG, "Client and server in sync.");
                     break;
             }
-
-
         } catch (IOException e) {
             e.printStackTrace();
             Log.e(LOG_TAG, "FAIL SYNC IOEXCEPTION");
@@ -210,7 +199,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
                 new String[]{String.valueOf(serverLastUpdate), String.valueOf(userClientId)},
                 null);
 
-
         JSONArray attemptsJson = getAttemptsJsonArray(attemptsCursor);
         JSONArray userLanguagesJson = getUserLanguagesJsonArray(userLanguagesCursor);
 
@@ -228,7 +216,11 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         }
 
         RequestBody body = RequestBody.create(JSON, jsonBody.toString());
-        HttpUrl url = HttpUrl.parse(mServerUrl + userUrlString);
+        HttpUrl url = new HttpUrl.Builder()
+                .scheme("http")
+                .host(mServerUrl)
+                .addPathSegment(userUrlString)
+                .build();
 
         Request request = new Request.Builder()
                 .url(url)
@@ -316,7 +308,12 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         }
 
         RequestBody body = RequestBody.create(JSON, jsonBody.toString());
-        HttpUrl url = HttpUrl.parse(mServerUrl + "/api/user");
+        HttpUrl url = new HttpUrl.Builder()
+                .scheme("http")
+                .host(mServerUrl)
+                .addPathSegment("api")
+                .addPathSegment("user")
+                .build();
 
         Request request = new Request.Builder()
                 .url(url)
@@ -343,7 +340,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
             String objectType = keys.next();
             String urlStr = urls.getString(objectType);
             Log.d(LOG_TAG, String.format("OBJECT TYPE / URL STRING: %s / %s", objectType, urlStr));
-            syncFromUrl(urlStr, objectType, client, userId);
+            syncFromUrl(urlStr, objectType, client, userId, 1);
         }
     }
 
@@ -351,10 +348,23 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
      * @param urlStr: The url we want to GET
      * @param objectType: the type of object we'll get: allows choosing the right parser.
      */
-    private void syncFromUrl(String urlStr, String objectType, OkHttpClient client, long userId) {
+    private void syncFromUrl(String urlStr, String objectType, OkHttpClient client, long userId, int page) {
+        // The usual data-fetching boilerplate.
 
-        HttpUrl url = HttpUrl.parse(mServerUrl + urlStr);
+        Uri uri = Uri.parse("http://" + mServerUrl + urlStr)
+                .buildUpon()
+                .appendQueryParameter("page", String.valueOf(page))
+                .build();
+        URL url;
+        try {
+            url = new URL(uri.toString());
+        } catch (MalformedURLException e) {
+            Log.e(LOG_TAG, "Could not parse url from server correctly.");
+            e.printStackTrace();
+            return;
+        }
         Log.d(LOG_TAG, String.format("In syncFromUrl, full url is: %s", url.toString()));
+
 
         Request request = new Request.Builder()
                 .url(url)
@@ -362,12 +372,18 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 
         Response response = null;
         JSONObject responseJson = null;
+        int totalPages = 1;
         try {
             response = client.newCall(request).execute();
+            if (!response.isSuccessful()) {
+                Log.e(LOG_TAG, String.format("Bad status when querying the server: %d", response.code()));
+                return;
+            }
             String bodyString = response.body().string();
             Log.d(LOG_TAG, bodyString);
             responseJson = new JSONObject(bodyString);
-            //TODO: handle pagination. Much fun ahead.
+            // Handle pagination
+            totalPages = responseJson.getInt("total_pages");
         } catch (IOException e) {
             e.printStackTrace();
             Log.e(LOG_TAG, "FAIL SYNC IOEXCEPTION. Whatever that means.");
@@ -377,7 +393,14 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
             Log.e(LOG_TAG, "BAAAAD JSON from the server. Bad server bad.");
         }
 
+        parseObjects(objectType, userId, responseJson);
+        if (page < totalPages) {
+            syncFromUrl(urlStr, objectType, client, userId, page + 1);
+        }
+    }
 
+    private void parseObjects(String objectType, long userId, JSONObject responseJson) {
+        // Pick the right parsing based on the object type.
         switch (objectType) {
             case "attempt":
                 try {

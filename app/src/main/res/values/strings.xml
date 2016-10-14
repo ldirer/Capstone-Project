@@ -31,5 +31,5 @@
     <string name="title_widget">Keep learning!</string>
     <string name="sync_account_type">udacitycapstone.belenos.com</string>
     <string name="error_insert_user">Sorry, something went wrong and we could not log you in.</string>
-    <string name="server_url">http://d04b627f.ngrok.io</string>
+    <string name="server_host">d04b627f.ngrok.io</string>
 </resources>

@@ -13,7 +13,7 @@ import static com.belenos.udacitycapstone.data.DbContract.UserEntry;
 
 public class DbHelper extends SQLiteOpenHelper{
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 20;
+    private static final int DATABASE_VERSION = 21;
 
     static final String DATABASE_NAME = "capstone.db";
 
@@ -74,8 +74,8 @@ public class DbHelper extends SQLiteOpenHelper{
                 AttemptEntry.COLUMN_TIMESTAMP + " INTEGER NOT NULL, " +
                 "FOREIGN KEY (" + AttemptEntry.COLUMN_USER_ID + ") REFERENCES " + UserEntry.TABLE_NAME + " (" + UserEntry._ID + "), " +
                 "FOREIGN KEY (" + AttemptEntry.COLUMN_LANGUAGE_ID + ") REFERENCES " + LanguageEntry.TABLE_NAME + " (" + LanguageEntry._ID + "), " +
-                // A sanity check
-                "UNIQUE (" + AttemptEntry.COLUMN_USER_ID + ", " + AttemptEntry.COLUMN_TIMESTAMP + ")" +
+                // A sanity check. On conflict (the user clicks several times within a second), replace to avoid raising an error and crashing.
+                "UNIQUE (" + AttemptEntry.COLUMN_USER_ID + ", " + AttemptEntry.COLUMN_TIMESTAMP + ") ON CONFLICT REPLACE" +
                 ");";
 
         // We make sure our fixtures ids match our server's.
