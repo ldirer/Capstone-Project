@@ -187,8 +187,6 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
 
         OkHttpClient client = new OkHttpClient.Builder().addNetworkInterceptor(new StethoInterceptor()).build();
 
-//        HttpUrl url = HttpUrl.parse(mServerUrl + "/api/language" + searchQueryStr);
-
         // We do a search query by name to get the language.
         HttpUrl url = new HttpUrl.Builder()
                 .scheme("http")

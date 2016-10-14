@@ -115,7 +115,8 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
 
     public void startGameFragment(String languageName, long languageId) {
         android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        GameFragment fragment = GameFragment.newInstance(mSwitchAccountButton);
+        mSwitchAccountButton.setVisibility(View.GONE);
+        GameFragment fragment = GameFragment.newInstance();
         Bundle args = new Bundle();
         args.putString(FRAGMENT_ARG_LANGUAGE_NAME, languageName);
         args.putLong(FRAGMENT_ARG_LANGUAGE_ID, languageId);
@@ -135,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
 
         if (id == android.R.id.home) {
             Log.d(LOG_TAG, "action bar clicked");
+            mSwitchAccountButton.setVisibility(View.VISIBLE);
             launchHomeFragment();
         }
 

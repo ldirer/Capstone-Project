@@ -68,7 +68,6 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
     public static final int COL_TRANSLATION = 3;
     private static final int LOADER_ID = 1;
 
-    private static Button mSwitchAccountButton;
 
 
 
@@ -107,11 +106,10 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
         // Required empty public constructor
     }
 
-    public static GameFragment newInstance(Button switchAccountButton) {
+    public static GameFragment newInstance() {
         GameFragment fragment = new GameFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);
-        mSwitchAccountButton = switchAccountButton;
         return fragment;
     }
 
@@ -145,7 +143,6 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
         ButterKnife.bind(this, view);
 
         mWhatToDoTextview.setText(getResources().getString(R.string.translate_into_language, mLanguageName));
-        mSwitchAccountButton.setVisibility(View.GONE);
         // TODO: the visibility will depend on whether the user has seen the word before.
         updateWordViews();
         mTranslatedTextview.setVisibility(View.INVISIBLE);
