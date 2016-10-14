@@ -280,7 +280,7 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
         // Log attempt data in database
         ContentValues attemptCV = new ContentValues();
         attemptCV.put(DbContract.AttemptEntry.COLUMN_SUCCESS, success ? 1 : 0);
-        attemptCV.put(DbContract.AttemptEntry.COLUMN_TIMESTAMP, System.currentTimeMillis());
+        attemptCV.put(DbContract.AttemptEntry.COLUMN_TIMESTAMP, System.currentTimeMillis() / 1000);
         attemptCV.put(DbContract.AttemptEntry.COLUMN_USER_ID, mUserId);
         attemptCV.put(DbContract.AttemptEntry.COLUMN_WORD_ID, mWordToTranslateId);
         attemptCV.put(DbContract.AttemptEntry.COLUMN_LANGUAGE_ID, mLanguageId);

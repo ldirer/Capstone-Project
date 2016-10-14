@@ -114,6 +114,8 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
 
 
             ContentValues wordValues = new ContentValues();
+            // It's important (paramount ;)) that the ids on the device and on the server are consistent for words.
+            // Same goes for languages: the ids are both used in the attempt table.
             wordValues.put(DbContract.WordEntry._ID, wordJson.getInt(WORD_ID));
             wordValues.put(DbContract.WordEntry.COLUMN_LANGUAGE_ID, languageId);
             wordValues.put(DbContract.WordEntry.COLUMN_WORD, wordJson.getString(WORD_WORD));

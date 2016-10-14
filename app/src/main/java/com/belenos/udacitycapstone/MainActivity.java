@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.widget.Button;
 
 import com.belenos.udacitycapstone.data.DbContract;
+import com.belenos.udacitycapstone.network.MySyncAdapter;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         Log.d(LOG_TAG, "in onCreate");
         setContentView(R.layout.activity_main);
 
+        MySyncAdapter.initializeSyncAdapter(this);
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         Long userId = preferences.getLong(LoginActivity.KEY_USER_ID, 0);

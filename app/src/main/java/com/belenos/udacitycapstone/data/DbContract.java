@@ -27,6 +27,11 @@ public class DbContract {
     public static final String PATH_WORD = "word";
     public static final String PATH_ATTEMPT = "attempt";
 
+    public static final String PATH_LAST_UPDATE = "last_update";
+
+    public static final Uri LAST_UPDATE_URI = BASE_CONTENT_URI.buildUpon()
+            .appendPath(PATH_LAST_UPDATE).build();
+
 
     public static final class UserEntry implements BaseColumns {
         public static final String TABLE_NAME = "user";
@@ -89,6 +94,7 @@ public class DbContract {
 
         public static final String COLUMN_USER_ID = "user_id";
         public static final String COLUMN_LANGUAGE_ID = "language_id";
+        public static final String COLUMN_CREATED_TIMESTAMP = "created_timestamp";
 
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_USER_LANGUAGE).build();
 

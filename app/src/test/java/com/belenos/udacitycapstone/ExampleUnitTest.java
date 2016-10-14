@@ -2,6 +2,7 @@ package com.belenos.udacitycapstone;
 
 import com.belenos.udacitycapstone.utils.Utils;
 
+import org.json.JSONException;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -46,5 +47,18 @@ public class ExampleUnitTest {
         }
         // We just make sure we have a probability distribution.
         assertEquals(1f, totalProbability, 0.0001f);
+    }
+
+    @Test
+    public void getIsoFromTimestampTest() {
+        assertEquals(Utils.getIsoFromTimestamp(1476379541), "2016-10-13T17:25:41");
+        try {
+            assertEquals(Utils.getUnixTimestamp("2016-10-13T17:25:41"), 1476379541);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            assertEquals("fail json", 1, 0);
+        }
+
+//        assertEquals(MySyncAdapter.getUnixTimestamp("2016-10-13 17:25:41"), );
     }
 }

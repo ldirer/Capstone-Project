@@ -199,6 +199,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     long userId = c.getLong(0);
                     c.close();
                     preferences.edit().putLong(KEY_USER_ID, userId).apply();
+
+                    Log.d(LOG_TAG, "Running MySyncAdapter (supposedly!)");
                     MySyncAdapter.syncImmediately(this);
                 }
                 else {

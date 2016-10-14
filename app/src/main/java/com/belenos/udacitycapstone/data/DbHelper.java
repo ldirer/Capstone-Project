@@ -13,7 +13,7 @@ import static com.belenos.udacitycapstone.data.DbContract.UserEntry;
 
 public class DbHelper extends SQLiteOpenHelper{
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 18;
+    private static final int DATABASE_VERSION = 20;
 
     static final String DATABASE_NAME = "capstone.db";
 
@@ -47,8 +47,11 @@ public class DbHelper extends SQLiteOpenHelper{
                 UserLanguageEntry._ID + " INTEGER PRIMARY KEY," +
                 UserLanguageEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +
                 UserLanguageEntry.COLUMN_LANGUAGE_ID + " INTEGER NOT NULL, " +
+                UserLanguageEntry.COLUMN_CREATED_TIMESTAMP + " INTEGER NOT NULL, " +
                 "FOREIGN KEY (" + UserLanguageEntry.COLUMN_USER_ID + ") REFERENCES " + UserEntry.TABLE_NAME + " (" + UserEntry._ID + "), " +
                 "FOREIGN KEY (" + UserLanguageEntry.COLUMN_LANGUAGE_ID + ") REFERENCES " + LanguageEntry.TABLE_NAME + " (" + LanguageEntry._ID + ")" +
+                // A sanity check
+                "UNIQUE (" + UserLanguageEntry.COLUMN_USER_ID + ", " + UserLanguageEntry.COLUMN_CREATED_TIMESTAMP + ", " + UserLanguageEntry.COLUMN_LANGUAGE_ID + ")" +
                 ");";
 
 
@@ -70,7 +73,9 @@ public class DbHelper extends SQLiteOpenHelper{
                 // We'll store time in UNIX time format. No dedicated datatype in SQLite.
                 AttemptEntry.COLUMN_TIMESTAMP + " INTEGER NOT NULL, " +
                 "FOREIGN KEY (" + AttemptEntry.COLUMN_USER_ID + ") REFERENCES " + UserEntry.TABLE_NAME + " (" + UserEntry._ID + "), " +
-                "FOREIGN KEY (" + AttemptEntry.COLUMN_LANGUAGE_ID + ") REFERENCES " + LanguageEntry.TABLE_NAME + " (" + LanguageEntry._ID + ")" +
+                "FOREIGN KEY (" + AttemptEntry.COLUMN_LANGUAGE_ID + ") REFERENCES " + LanguageEntry.TABLE_NAME + " (" + LanguageEntry._ID + "), " +
+                // A sanity check
+                "UNIQUE (" + AttemptEntry.COLUMN_USER_ID + ", " + AttemptEntry.COLUMN_TIMESTAMP + ")" +
                 ");";
 
         // We make sure our fixtures ids match our server's.

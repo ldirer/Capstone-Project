@@ -269,6 +269,7 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
         final ContentValues contentValues = new ContentValues();
         contentValues.put(DbContract.UserLanguageEntry.COLUMN_LANGUAGE_ID, languageSelectedId);
         contentValues.put(DbContract.UserLanguageEntry.COLUMN_USER_ID, mUserId);
+        contentValues.put(DbContract.UserLanguageEntry.COLUMN_CREATED_TIMESTAMP, System.currentTimeMillis() / 1000);
 
         FetchLanguageTask fetchLanguageTask = new FetchLanguageTask(
                 (MainActivity) getActivity(), languageSelectedName, mProgressBar, new FetchLanguageTask.OnPostExecuteCallback(){

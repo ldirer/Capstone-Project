@@ -8,15 +8,29 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.belenos.udacitycapstone.data.DbContract;
+import com.belenos.udacitycapstone.network.MySyncAdapter;
+
+import org.json.JSONException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class Utils {
 
     private static final String LOG_TAG = Utils.class.getSimpleName();
+
+    // iso 8601 format.
+    private static final SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+    static {
+        isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
 
     public static long getNextWordId(Context context, Long mWordToTranslateId, long mLanguageId, long mUserId) {
         Uri uri = DbContract.AttemptEntry.CONTENT_URI.buildUpon()
@@ -35,6 +49,7 @@ public class Utils {
         int COL_SUCCESS_RATE = 2;
 
 
+        // A cursor with the words (their id) and the associated attempt count.
         Cursor wordsWithAttemptsCursor = context.getContentResolver().query(uri, projection, null, null, null);
 
         if(wordsWithAttemptsCursor == null) {
@@ -42,6 +57,7 @@ public class Utils {
             return 1;
         }
 
+        // Note the size of this array is the number of words for the language. (Including non-attempted).
         List<Integer> attemptsWordIdArray = new ArrayList<>();
         List<Integer> attemptsCountArray = new ArrayList<>();
         List<Float> attemptsSuccessRateArray = new ArrayList<>();
@@ -157,4 +173,24 @@ public class Utils {
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
+    public static long getUnixTimestamp(String dateStr) {
+        long unixTimestamp;
+        try {
+            unixTimestamp = isoFormat.parse(dateStr).getTime() / 1000;
+        } catch (ParseException e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, "Failed to parse the freaking datetime string: " + dateStr);
+            return 0;
+        }
+        return unixTimestamp;
+    }
+
+    /**
+     * Return a date string (ISO8601) from a unix timestamp (second-precision).
+     * That's cause I suck/was a bit lazy in manipulating dates backend-side ;).
+     */
+    public static String getIsoFromTimestamp(long timestamp) {
+        // Us imperialism. We specify it to not get weird cyrillic numbers (I didnt rly get it).
+        return isoFormat.format(new Date(timestamp * 1000));
+    }
 }

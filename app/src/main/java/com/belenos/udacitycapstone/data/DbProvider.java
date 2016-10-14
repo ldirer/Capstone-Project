@@ -34,6 +34,7 @@ public class DbProvider extends ContentProvider {
     private static final int ATTEMPT = 109;
     private static final int ATTEMPTS_BY_USER_BY_LANGUAGE = 110;
     private static final int LANGUAGES_NOT_LEARNED_FOR_USER = 111;
+    private static final int LAST_UPDATE = 112;
 
 
     private static final SQLiteQueryBuilder sLanguagesForUserQueryBuilder;
@@ -43,6 +44,7 @@ public class DbProvider extends ContentProvider {
     private static final SQLiteQueryBuilder sAttemptsQueryBuilder;
     private static final SQLiteQueryBuilder sWordsWithAttemptsQueryBuilder;
     private static final SQLiteQueryBuilder sLanguagesNotLearnedForUserQueryBuilder;
+    private static final SQLiteQueryBuilder sUserLanguageQueryBuilder;
 
     private static final String strLanguageNotLearnedForUserTables = LanguageEntry.TABLE_NAME + " LEFT JOIN " +
             "(SELECT * FROM " + UserLanguageEntry.TABLE_NAME +
@@ -51,6 +53,7 @@ public class DbProvider extends ContentProvider {
             " ON " + UserLanguageEntry.TABLE_NAME + "." + UserLanguageEntry.COLUMN_LANGUAGE_ID +
             " = " + LanguageEntry.TABLE_NAME + "." + LanguageEntry._ID;
 
+
     static {
         sLanguagesForUserQueryBuilder = new SQLiteQueryBuilder();
         sLanguagesQueryBuilder = new SQLiteQueryBuilder();
@@ -58,6 +61,7 @@ public class DbProvider extends ContentProvider {
         sAttemptsQueryBuilder = new SQLiteQueryBuilder();
         sWordsWithAttemptsQueryBuilder = new SQLiteQueryBuilder();
         sLanguagesNotLearnedForUserQueryBuilder = new SQLiteQueryBuilder();
+        sUserLanguageQueryBuilder = new SQLiteQueryBuilder();
 
         // A join of language and user_language tables.
         sLanguagesForUserQueryBuilder.setTables(
@@ -81,6 +85,9 @@ public class DbProvider extends ContentProvider {
 
         sWordsQueryBuilder = new SQLiteQueryBuilder();
         sWordsQueryBuilder.setTables(WordEntry.TABLE_NAME);
+
+
+        sUserLanguageQueryBuilder.setTables(UserLanguageEntry.TABLE_NAME);
 
         // What we want (more or less):
         // select *, attempt_count, success_rate from word left join (select word_id, count(word_id) as attempt_count, avg(success) as success_rate from attempt where attempt.user_id=1 GROUP BY word_id) attempt on word._id = attempt.word_id where word.language_id = 16;
@@ -134,6 +141,7 @@ public class DbProvider extends ContentProvider {
         matcher.addURI(authority, DbContract.PATH_WORD + "/#", WORD_ID);
 
         matcher.addURI(authority, DbContract.PATH_USER_LANGUAGE, USER_LANGUAGE);
+        matcher.addURI(authority, DbContract.PATH_LAST_UPDATE, LAST_UPDATE);
 
         matcher.addURI(authority, DbContract.PATH_LANGUAGES + "/" + LanguageEntry.NOT_USER_PATH_SEGMENT, LANGUAGES_NOT_LEARNED_FOR_USER);
 
@@ -196,12 +204,44 @@ public class DbProvider extends ContentProvider {
                 retCursor = getWordsByLanguage(uri, projection, sortOrder);
                 break;
             }
+            case USER_LANGUAGE: {
+                retCursor = sUserLanguageQueryBuilder.query(mDbHelper.getReadableDatabase(),
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            }
+            case ATTEMPT: {
+                retCursor = sAttemptsQueryBuilder.query(mDbHelper.getReadableDatabase(),
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+
+            }
             case ATTEMPTS_BY_USER_BY_LANGUAGE: {
                 retCursor = getAttemptsForLanguageForUser(uri, projection, sortOrder);
                 break;
             }
             case LANGUAGES_NOT_LEARNED_FOR_USER: {
                 retCursor = getLanguagesNotLearnedForUser(uri, projection, sortOrder);
+                break;
+            }
+            case LAST_UPDATE: {
+                retCursor = mDbHelper.getReadableDatabase().rawQuery(
+                        "SELECT MAX(ts) FROM (" +
+                                "SELECT MAX(" + UserLanguageEntry.COLUMN_CREATED_TIMESTAMP + ") as ts FROM " + UserLanguageEntry.TABLE_NAME +
+                                " UNION " +
+                                "SELECT MAX(" + AttemptEntry.COLUMN_TIMESTAMP + ") as ts FROM " + AttemptEntry.TABLE_NAME +
+                                ") x"
+                        ,
+                        null);
                 break;
             }
         }
@@ -359,26 +399,47 @@ public class DbProvider extends ContentProvider {
     public int bulkInsert(Uri uri, ContentValues[] values) {
         final SQLiteDatabase db = mDbHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
+        int returnCount;
         switch (match) {
             case WORD:
-                db.beginTransaction();
-                int returnCount = 0;
-                try {
-                    for (ContentValues value : values) {
-                        long _id = db.insert(WordEntry.TABLE_NAME, null, value);
-                        if (_id != -1) {
-                            returnCount++;
-                        }
-                    }
-                    db.setTransactionSuccessful();
-                } finally {
-                    db.endTransaction();
-                }
+                returnCount = simpleTransactionInsert(values, db, WordEntry.TABLE_NAME);
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            case ATTEMPT:
+                returnCount = simpleTransactionInsert(values, db, AttemptEntry.TABLE_NAME);
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            case USER_LANGUAGE:
+                returnCount = simpleTransactionInsert(values, db, UserLanguageEntry.TABLE_NAME);
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             default:
                 return super.bulkInsert(uri, values);
         }
+    }
+
+    /**
+     * Insert all values in the relevant table in a single transaction.
+     * @param values
+     * @param db
+     * @param tableName
+     * @return
+     */
+    private int simpleTransactionInsert(ContentValues[] values, SQLiteDatabase db, String tableName) {
+        db.beginTransaction();
+        int returnCount = 0;
+        try {
+            for (ContentValues value : values) {
+                long _id = db.insert(tableName, null, value);
+                if (_id != -1) {
+                    returnCount++;
+                }
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        return returnCount;
     }
 
     @Override
