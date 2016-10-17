@@ -18,7 +18,7 @@
     <string name="sign_in_different_account">Sign in with a different account</string>
     <string name="start_learning_new">Start learning a new language</string>
     <string name="learn_next_pick_a_language">What do you want to learn next?</string>
-    <string name="translate_into_language">Translate the word above into %1$s.</string>
+    <string name="translate_into_language">Translate the phrase above into %1$s.</string>
     <string name="check_answer">Check my answer</string>
 
 
@@ -31,5 +31,5 @@
     <string name="title_widget">Keep learning!</string>
     <string name="sync_account_type">udacitycapstone.belenos.com</string>
     <string name="error_insert_user">Sorry, something went wrong and we could not log you in.</string>
-    <string name="server_host">d04b627f.ngrok.io</string>
+    <string name="server_host">1397fb80.ngrok.io</string>
 </resources>

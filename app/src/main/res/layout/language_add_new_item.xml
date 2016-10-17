@@ -4,8 +4,9 @@
     android:id="@+id/add_a_language"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     >
+        <!-- Spaces so we center the actual text + icon -->
         <Space
             android:layout_width="0dp"
             android:layout_height="wrap_content"

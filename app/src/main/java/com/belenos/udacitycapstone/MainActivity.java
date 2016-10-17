@@ -1,11 +1,21 @@
 package com.belenos.udacitycapstone;
 
+import android.*;
+import android.Manifest;
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -22,7 +32,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity implements OnboardingFragment.OnFragmentInteractionListener,
-    HomeFragment.OnFragmentInteractionListener, GameFragment.OnFragmentInteractionListener {
+        HomeFragment.OnFragmentInteractionListener, GameFragment.OnFragmentInteractionListener {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     public static final String FRAGMENT_ARG_LANGUAGE_NAME = "LANGUAGE_NAME";
@@ -30,8 +40,10 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
 
     public boolean mLanguageDataLoaded = false;
 
-    @BindView(R.id.sign_in_different_account_button) Button mSwitchAccountButton;
-    @BindView(R.id.toolbar) Toolbar mToolbar;
+    @BindView(R.id.sign_in_different_account_button)
+    Button mSwitchAccountButton;
+    @BindView(R.id.toolbar)
+    Toolbar mToolbar;
 
 
     @Override
@@ -41,6 +53,21 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         setContentView(R.layout.activity_main);
 
         MySyncAdapter.initializeSyncAdapter(this);
+        MySyncAdapter.syncImmediately(this);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[] {"android.permissions.GET_ACCOUNTS"}, 123);
+            }
+
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+        }
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         Long userId = preferences.getLong(LoginActivity.KEY_USER_ID, 0);
@@ -52,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
             languagesCursor.close();
         }
         else {
-            android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             OnboardingFragment fragment = OnboardingFragment.newInstance();
             ft.replace(R.id.fragment_frame_layout, fragment);
             ft.addToBackStack(null);
@@ -66,6 +93,14 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         mToolbar.setNavigationIcon(R.drawable.ic_menu_home);
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        AccountManager am = AccountManager.get(this);
+        Account account = am.getAccountsByType("udacitycapstone.belenos.com")[0];
+        boolean isYourAccountSyncEnabled = ContentResolver.getSyncAutomatically(account, getString(R.string.content_authority));
+        boolean isMasterSyncEnabled = ContentResolver.getMasterSyncAutomatically();
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
 
     @OnClick(R.id.sign_in_different_account_button)
     public void switchAccount() {

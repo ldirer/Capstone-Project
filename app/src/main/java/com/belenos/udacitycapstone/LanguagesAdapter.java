@@ -1,7 +1,6 @@
 package com.belenos.udacitycapstone;
 
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -46,7 +45,7 @@ class LanguagesAdapter extends RecyclerView.Adapter<LanguagesAdapter.LanguagesAd
                 break;
             case ADD_A_LANGUAGE_VIEW_TYPE:
                 // We might want to change this in the future.
-                layoutId = R.layout.add_new_language_item;
+                layoutId = R.layout.language_add_new_item;
                 break;
         }
 

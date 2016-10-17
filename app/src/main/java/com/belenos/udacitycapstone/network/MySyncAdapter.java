@@ -48,8 +48,8 @@ import okhttp3.Response;
 public class MySyncAdapter extends AbstractThreadedSyncAdapter {
     private static final String LOG_TAG = MySyncAdapter.class.getSimpleName();
     // Sync interval supposedly in seconds.
-    private static final int SYNC_INTERVAL = 7;
-    private static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
+    private static final int SYNC_INTERVAL = 70;
+    private static final int SYNC_FLEXTIME = 0;
     private String mServerUrl;
 
     private Context mContext;
