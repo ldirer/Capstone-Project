@@ -15,7 +15,7 @@
     <string name="flag_content_description">language flag</string>
     <string name="my_languages">My languages:</string>
     <string name="resume_learning">Resume learning</string>
-    <string name="sign_in_different_account">Sign in with a different account</string>
+    <string name="sign_in_different_account"><u>Sign in with a different account</u></string>
     <string name="start_learning_new">Start learning a new language</string>
     <string name="learn_next_pick_a_language">What do you want to learn next?</string>
     <string name="translate_into_language">Translate the phrase above into %1$s.</string>
@@ -32,4 +32,6 @@
     <string name="sync_account_type">udacitycapstone.belenos.com</string>
     <string name="error_insert_user">Sorry, something went wrong and we could not log you in.</string>
     <string name="server_host">1397fb80.ngrok.io</string>
+    <string name="debug_underlined"><u>Bouga centered?</u></string>
+    <string name="no_more_new_languages">Woops! Looks like we don\'t have a new language for you to learn at the moment!</string>
 </resources>

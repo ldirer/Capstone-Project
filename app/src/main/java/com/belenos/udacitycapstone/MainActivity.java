@@ -1,6 +1,5 @@
 package com.belenos.udacitycapstone;
 
-import android.*;
 import android.Manifest;
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -21,10 +20,9 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+import android.widget.TextView;
 
 import com.belenos.udacitycapstone.data.DbContract;
-import com.belenos.udacitycapstone.network.FetchLanguageTask;
 import com.belenos.udacitycapstone.network.MySyncAdapter;
 
 import butterknife.BindView;
@@ -41,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
     public boolean mLanguageDataLoaded = false;
 
     @BindView(R.id.sign_in_different_account_button)
-    Button mSwitchAccountButton;
+    TextView mSwitchAccountTextview;
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
 
@@ -150,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
 
     public void startGameFragment(String languageName, long languageId) {
         android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        mSwitchAccountButton.setVisibility(View.GONE);
+        mSwitchAccountTextview.setVisibility(View.GONE);
         GameFragment fragment = GameFragment.newInstance();
         Bundle args = new Bundle();
         args.putString(FRAGMENT_ARG_LANGUAGE_NAME, languageName);
@@ -171,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
 
         if (id == android.R.id.home) {
             Log.d(LOG_TAG, "action bar clicked");
-            mSwitchAccountButton.setVisibility(View.VISIBLE);
+            mSwitchAccountTextview.setVisibility(View.VISIBLE);
             launchHomeFragment();
         }
 

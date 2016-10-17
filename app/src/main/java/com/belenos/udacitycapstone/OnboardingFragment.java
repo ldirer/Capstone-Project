@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -55,8 +56,10 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
     @BindView(R.id.user_name_text_view) TextView mNameTextView;
     @BindView(R.id.call_to_action_textview) TextView mCallToActionTextView;
     @BindView(R.id.wheel_picker) WheelPicker mWheelPicker;
+    @BindView(R.id.empty_wheel_textview) TextView mEmptyWheelTextview;
     @BindView(R.id.flag_image_view) ImageView mFlagImageView;
     @BindView(R.id.progress_bar) ProgressBar mProgressBar;
+    @BindView(R.id.start_learning_button) Button mStartLearningButton;
 
     private String mDisplayName = "";
 
@@ -210,6 +213,11 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
 
         // We want to be sure we have our own (=non-default) data in the wheel picker to avoid indexErrors.
         if (wheelData.size() > 0) {
+            // In case there was a small misunderstanding previously, make sure we see the wheel.
+            mWheelPicker.setVisibility(View.VISIBLE);
+            mStartLearningButton.setVisibility(View.VISIBLE);
+            mEmptyWheelTextview.setVisibility(View.GONE);
+
             // Set the flag icon to the current position.
             // The flag changes 'onItemSelected' but we need to initialize it.
             int position = mWheelPicker.getCurrentItemPosition();
@@ -222,6 +230,13 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
             String iconName = mWheelDataIconNames.get(position);
             mFlagImageView.setImageResource(getResources()
                     .getIdentifier(iconName, "drawable", getContext().getPackageName()));
+        }
+        else {
+            Log.d(LOG_TAG, "No data in the wheel. The cat is out of the bag.");
+            mWheelPicker.setVisibility(View.GONE);
+            // That's important cuz we don't behave nice when you want to start learning NULL.
+            mStartLearningButton.setVisibility(View.GONE);
+            mEmptyWheelTextview.setVisibility(View.VISIBLE);
         }
     }
 
