@@ -87,6 +87,9 @@
                 android:resource="@xml/authenticator" />
         </service>
 
+
+        <service android:name=".widget.MyWidgetIntentService" />
+
     </application>
 
 </manifest>

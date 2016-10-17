@@ -74,6 +74,7 @@ public class DbContract {
         public static final String COLUMN_ICON_NAME = "icon_name";
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_LANGUAGE).build();
         public static final String NOT_USER_PATH_SEGMENT = "notuser";
+        public static final String ATTEMPT_COUNT_PATH_SEGMENT = "attempt_count";
 
         public static Uri buildLanguagesUri() {
             return BASE_CONTENT_URI.buildUpon().appendPath(PATH_LANGUAGES).build();
@@ -84,6 +85,14 @@ public class DbContract {
             return buildLanguagesUri().buildUpon()
                     .appendPath(NOT_USER_PATH_SEGMENT)
                     .appendQueryParameter(UserLanguageEntry.COLUMN_USER_ID, String.valueOf(mUserId))
+                    .build();
+        }
+
+        public static Uri buildLanguagesAttemptCount(Long userId, long timestamp) {
+            return buildLanguagesUri().buildUpon()
+                    .appendPath(ATTEMPT_COUNT_PATH_SEGMENT)
+                    .appendQueryParameter(AttemptEntry.COLUMN_USER_ID, String.valueOf(userId))
+                    .appendQueryParameter(AttemptEntry.TIMESTAMP_MINIMUM, String.valueOf(timestamp))
                     .build();
         }
     }
@@ -142,9 +151,12 @@ public class DbContract {
         // Computed fields by group by on word_id
         public static final String COMPUTED_SUCCESS_RATE = "success_rate";
         public static final String COMPUTED_ATTEMPT_COUNT = "attempt_count";
+        // A parameter for uris. When we want to query with TIMESTAMP > ?.
+        public static final String TIMESTAMP_MINIMUM = "timestamp_minimum";
 
         public static Uri buildAttemptUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+
     }
 }

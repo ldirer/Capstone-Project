@@ -25,6 +25,8 @@ import android.widget.TextView;
 import com.belenos.udacitycapstone.data.DbContract;
 import com.belenos.udacitycapstone.network.MySyncAdapter;
 
+import java.util.Objects;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -47,58 +49,46 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // We can launch the game directly if the intent has the right parameters.
+        Intent launchingIntent = getIntent();
+        // It's a bit weird that we're passing both the id and the name. Could pbbly use a refactor.
+        long languageId = launchingIntent.getLongExtra(FRAGMENT_ARG_LANGUAGE_ID, 0);
+        String languageName = launchingIntent.getStringExtra(FRAGMENT_ARG_LANGUAGE_NAME);
+
         Log.d(LOG_TAG, "in onCreate");
         setContentView(R.layout.activity_main);
 
         MySyncAdapter.initializeSyncAdapter(this);
         MySyncAdapter.syncImmediately(this);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[] {"android.permissions.GET_ACCOUNTS"}, 123);
-            }
-
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-        }
-
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         Long userId = preferences.getLong(LoginActivity.KEY_USER_ID, 0);
-
-
-        Cursor languagesCursor = getContentResolver().query(DbContract.UserEntry.buildLanguagesForUserUri(userId), null, null, null, null);
-        if(languagesCursor != null && languagesCursor.getCount() > 0) {
-            launchHomeFragment();
-            languagesCursor.close();
-        }
-        else {
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            OnboardingFragment fragment = OnboardingFragment.newInstance();
-            ft.replace(R.id.fragment_frame_layout, fragment);
-            ft.addToBackStack(null);
-            ft.commit();
-        }
 
         ButterKnife.bind(this);
 
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         mToolbar.setNavigationIcon(R.drawable.ic_menu_home);
+
+        if (languageId != 0 && languageName != null) {
+            //We have everything we need to start the game right away
+            startGameFragment(languageName, languageId);
+        } else {
+            Cursor languagesCursor = getContentResolver().query(DbContract.UserEntry.buildLanguagesForUserUri(userId), null, null, null, null);
+            if (languagesCursor != null && languagesCursor.getCount() > 0) {
+                launchHomeFragment();
+                languagesCursor.close();
+            } else {
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                OnboardingFragment fragment = OnboardingFragment.newInstance();
+                ft.replace(R.id.fragment_frame_layout, fragment);
+                ft.addToBackStack(null);
+                ft.commit();
+            }
+        }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        AccountManager am = AccountManager.get(this);
-        Account account = am.getAccountsByType("udacitycapstone.belenos.com")[0];
-        boolean isYourAccountSyncEnabled = ContentResolver.getSyncAutomatically(account, getString(R.string.content_authority));
-        boolean isMasterSyncEnabled = ContentResolver.getMasterSyncAutomatically();
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
 
     @OnClick(R.id.sign_in_different_account_button)
     public void switchAccount() {

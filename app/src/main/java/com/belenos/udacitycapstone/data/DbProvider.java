@@ -35,6 +35,7 @@ public class DbProvider extends ContentProvider {
     private static final int ATTEMPTS_BY_USER_BY_LANGUAGE = 110;
     private static final int LANGUAGES_NOT_LEARNED_FOR_USER = 111;
     private static final int LAST_UPDATE = 112;
+    private static final int LANGUAGES_ATTEMPT_COUNT = 113;
 
 
     private static final SQLiteQueryBuilder sLanguagesForUserQueryBuilder;
@@ -42,6 +43,7 @@ public class DbProvider extends ContentProvider {
     private static final SQLiteQueryBuilder sUsersQueryBuilder;
     private static final SQLiteQueryBuilder sWordsQueryBuilder;
     private static final SQLiteQueryBuilder sAttemptsQueryBuilder;
+    private static final SQLiteQueryBuilder sAttemptsWithLanguageQueryBuilder;
     private static final SQLiteQueryBuilder sWordsWithAttemptsQueryBuilder;
     private static final SQLiteQueryBuilder sLanguagesNotLearnedForUserQueryBuilder;
     private static final SQLiteQueryBuilder sUserLanguageQueryBuilder;
@@ -59,6 +61,7 @@ public class DbProvider extends ContentProvider {
         sLanguagesQueryBuilder = new SQLiteQueryBuilder();
         sUsersQueryBuilder = new SQLiteQueryBuilder();
         sAttemptsQueryBuilder = new SQLiteQueryBuilder();
+        sAttemptsWithLanguageQueryBuilder = new SQLiteQueryBuilder();
         sWordsWithAttemptsQueryBuilder = new SQLiteQueryBuilder();
         sLanguagesNotLearnedForUserQueryBuilder = new SQLiteQueryBuilder();
         sUserLanguageQueryBuilder = new SQLiteQueryBuilder();
@@ -78,6 +81,12 @@ public class DbProvider extends ContentProvider {
                         " ON " + UserLanguageEntry.TABLE_NAME + "." + UserLanguageEntry.COLUMN_LANGUAGE_ID +
                         " = " + LanguageEntry.TABLE_NAME + "." + LanguageEntry._ID);
 
+
+        sAttemptsWithLanguageQueryBuilder.setTables(
+                DbContract.LanguageEntry.TABLE_NAME + " LEFT JOIN " + AttemptEntry.TABLE_NAME +
+                        " ON " + AttemptEntry.TABLE_NAME + "." + AttemptEntry.COLUMN_LANGUAGE_ID +
+                        "=" + LanguageEntry.TABLE_NAME + "." + LanguageEntry._ID
+        );
 
         sAttemptsQueryBuilder.setTables(DbContract.AttemptEntry.TABLE_NAME);
         sLanguagesQueryBuilder.setTables(LanguageEntry.TABLE_NAME);
@@ -118,6 +127,9 @@ public class DbProvider extends ContentProvider {
     + AttemptEntry.TABLE_NAME + "." + AttemptEntry.COLUMN_USER_ID + " IS NULL " + ") AND " +
             WordEntry.TABLE_NAME + "." + WordEntry.COLUMN_LANGUAGE_ID + " = ?";
 
+    private static final String sAttemptsByUserSelection = AttemptEntry.TABLE_NAME + "." + AttemptEntry.COLUMN_USER_ID + " = ?";
+    private static final String sAttemptsByTimestampSelectionGt = AttemptEntry.TABLE_NAME + "." + AttemptEntry.COLUMN_TIMESTAMP + " > ?";
+    private static final String sAttemptsBySuccess = AttemptEntry.TABLE_NAME + "." + AttemptEntry.COLUMN_SUCCESS + " = ?";
 
     //user_language.user_id = ?
     private static final String sUserLanguageSelectionByUserId = UserLanguageEntry.TABLE_NAME + "." + UserLanguageEntry.COLUMN_USER_ID + " = ? ";
@@ -144,6 +156,7 @@ public class DbProvider extends ContentProvider {
         matcher.addURI(authority, DbContract.PATH_LAST_UPDATE, LAST_UPDATE);
 
         matcher.addURI(authority, DbContract.PATH_LANGUAGES + "/" + LanguageEntry.NOT_USER_PATH_SEGMENT, LANGUAGES_NOT_LEARNED_FOR_USER);
+        matcher.addURI(authority, DbContract.PATH_LANGUAGES + "/" + LanguageEntry.ATTEMPT_COUNT_PATH_SEGMENT, LANGUAGES_ATTEMPT_COUNT);
 
 
         matcher.addURI(authority, DbContract.PATH_LANGUAGES, LANGUAGES);
@@ -249,8 +262,36 @@ public class DbProvider extends ContentProvider {
                         null);
                 break;
             }
+            case LANGUAGES_ATTEMPT_COUNT: {
+                retCursor = getLanguagesAttemptCount(uri, projection, sortOrder);
+                break;
+            }
         }
         return retCursor;
+    }
+
+    /** This is a group by language_id, user_id query.
+     */
+    private Cursor getLanguagesAttemptCount(Uri uri, String[] projection, String sortOrder) {
+        String[] selectionArgs = new String[] {
+                uri.getQueryParameter(AttemptEntry.COLUMN_USER_ID),
+                uri.getQueryParameter(AttemptEntry.TIMESTAMP_MINIMUM),
+                "1" // Filter for successful attempts
+        };
+        return sAttemptsWithLanguageQueryBuilder.query(mDbHelper.getReadableDatabase(),
+                projection,
+                combineSelections(combineSelections(sAttemptsByUserSelection, sAttemptsByTimestampSelectionGt, "AND"), sAttemptsBySuccess, "AND"),
+                selectionArgs,
+                AttemptEntry.TABLE_NAME + "." + AttemptEntry.COLUMN_USER_ID + "," + LanguageEntry.TABLE_NAME + "." + LanguageEntry._ID,
+                null,
+                sortOrder);
+    }
+
+    /**
+     * Combine 2 select clauses with the combineClause (typically AND or OR).
+     */
+    private static String combineSelections(String select1, String select2, String combineClause) {
+        return "("  + select1 + " " + combineClause + " " + select2 + ")";
     }
 
     /**
