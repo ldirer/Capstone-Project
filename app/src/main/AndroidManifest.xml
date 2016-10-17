@@ -58,11 +58,13 @@
             android:label="@string/title_widget" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.example.android.sunshine.app.ACTION_DATA_UPDATED" />
+                <action android:name="com.belenos.udacitycapstone.ACTION_DATA_UPDATED" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider"
                 android:resource="@xml/widget_info" />
         </receiver>
+        <service android:name=".widget.MyWidgetIntentService" />
+
         <service android:name="com.google.android.gms.analytics.AnalyticsService"
             android:enabled="true"
             android:exported="false"/>
@@ -88,7 +90,6 @@
         </service>
 
 
-        <service android:name=".widget.MyWidgetIntentService" />
 
     </application>
 

@@ -5,6 +5,7 @@ import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -50,6 +51,8 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String LOG_TAG = GameFragment.class.getSimpleName();
+
+    public static final String ACTION_DATA_UPDATED = "com.belenos.udacitycapstone.ACTION_DATA_UPDATED";
 
     private static final String[] WORD_COLUMNS = {
             DbContract.WordEntry.TABLE_NAME + "." + DbContract.WordEntry._ID,
@@ -292,6 +295,11 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
             Toast.makeText(getContext(), getString(R.string.answer_correct_toast), Toast.LENGTH_LONG).show();
             getLoaderManager().restartLoader(LOADER_ID, null, this);
             mAnswerEdittext.setText("");
+
+            // Update our widget!
+            Intent widgetIntent = new Intent(ACTION_DATA_UPDATED).setPackage(getContext().getPackageName());
+            getContext().sendBroadcast(widgetIntent);
+            Log.d(LOG_TAG, "Sending broadcast intent for widget");
         } else {
             Toast.makeText(getContext(), R.string.answer_incorrect_toast, Toast.LENGTH_LONG).show();
         }
