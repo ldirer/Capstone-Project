@@ -36,4 +36,5 @@
     <string name="no_more_new_languages">Woops! Looks like we don\'t have a new language for you to learn at the moment!</string>
     <string name="login_welcome">Welcome!\nSign in with Google to start learning a language.</string>
     <string name="widget_card_count_last_day"> %1$d cards in the last 24 hours!</string>
+    <string name="flags_application_logo">Flags - Application logo</string>
 </resources>

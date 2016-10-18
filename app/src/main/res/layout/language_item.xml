@@ -30,6 +30,7 @@
         android:layout_height="wrap_content"
         android:text="@string/resume_learning"
         android:layout_gravity="center_vertical|end"
+        style="@style/Widget.AppCompat.Button.Colored"
         />
 
 
