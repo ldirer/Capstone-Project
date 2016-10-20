@@ -22,6 +22,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:name=".MyApplication"
+        android:hardwareAccelerated="true"
         >
         <activity
             android:name=".LoginActivity"

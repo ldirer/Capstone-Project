@@ -9,6 +9,8 @@
     <dimen name="card_min_height">108dp</dimen>
     <dimen name="card_vertical_margin">16dp</dimen>
     <dimen name="card_horizontal_margin">32dp</dimen>
+    <dimen name="card_max_width">120dp</dimen>
+
     <dimen name="widget_min_resize_width">220dp</dimen>
     <dimen name="widget_default_width">250dp</dimen>
     <dimen name="widget_default_height">180dp</dimen>

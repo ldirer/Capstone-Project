@@ -3,6 +3,7 @@ package com.belenos.udacitycapstone;
 import android.animation.Animator;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -80,7 +81,6 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
     @BindView(R.id.translated_textview) TextView mTranslatedTextview;
     @BindView(R.id.answer_edittext) EditText mAnswerEdittext;
 
-    private OnFragmentInteractionListener mListener;
 
     private int mCardStateIndex;
     private int mCardState;
@@ -151,7 +151,6 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
         mTranslatedTextview.setVisibility(View.INVISIBLE);
         mCardState = FRONT_SHOWN_STATE;
 
-
         return view;
     }
 
@@ -169,6 +168,7 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
      */
     @OnClick(R.id.game_cardview)
     public void flipCard() {
+
         Log.d(LOG_TAG, "in flipCard");
         if (cardIsFlipping()) {
             // We dont want to do anything. The user will only be able to click once the animation is finished.
@@ -179,7 +179,6 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
         incrementState();
         Animator animatorOut = AnimatorInflater.loadAnimator(getContext(), R.animator.card_flip_out);
         animatorOut.setTarget(mGameCardview);
-        AnimatorSet animatorSet = new AnimatorSet();
         animatorOut.addListener(new Animator.AnimatorListener() {
                                     @Override
                                     public void onAnimationStart(Animator animator) {
@@ -243,7 +242,11 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
 
             }
         });
+        Animator animatorGlue = AnimatorInflater.loadAnimator(getContext(), R.animator.card_flip_glue);
+        animatorGlue.setTarget(mGameCardview);
+
         Animator[] animatorList = {animatorOut, animatorIn};
+        AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.playSequentially(animatorList);
         animatorSet.start();
     }
@@ -260,12 +263,6 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
         mCardState = STATE_SEQUENCE[mCardStateIndex];
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
 
     @OnClick(R.id.check_answer_button)
     public void checkUserAnswer() {
@@ -309,26 +306,16 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Log.d(LOG_TAG, "in onCreateLoader");
-        if(!((MainActivity) getActivity()).mLanguageDataLoaded) {
-
-        }
         Uri uri = DbContract.WordEntry.buildWordUri(Utils.getNextWordId(getContext(), mWordToTranslateId, mLanguageId, mUserId));
         return new CursorLoader(getActivity(), uri, WORD_COLUMNS, null, null, null);
     }
@@ -355,23 +342,8 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        //TODO: mb set empty text in the views here. Not sure that's essential/whether there's smt we should do in this method.
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }
 
     @Override
     public void onResume() {

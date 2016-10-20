@@ -3,6 +3,7 @@ package com.belenos.udacitycapstone.data;
 import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.util.Log;
 
 /**
  * Heavily inspired from sunshine app.
@@ -75,13 +76,16 @@ public class DbContract {
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_LANGUAGE).build();
         public static final String NOT_USER_PATH_SEGMENT = "notuser";
         public static final String ATTEMPT_COUNT_PATH_SEGMENT = "attempt_count";
+        private static final String LOG_TAG = LanguageEntry.class.getSimpleName();
 
         public static Uri buildLanguagesUri() {
+            // Well I realize after the fact that this should just be CONTENT_URI. Could use a refactor.
             return BASE_CONTENT_URI.buildUpon().appendPath(PATH_LANGUAGES).build();
         }
 
 
         public static Uri buildLanguagesNotLearnedByUserUri(long mUserId) {
+            Log.d(LOG_TAG, String.format("in buildLanguagesNotLearnedByUserUri with userId: %d", mUserId));
             return buildLanguagesUri().buildUpon()
                     .appendPath(NOT_USER_PATH_SEGMENT)
                     .appendQueryParameter(UserLanguageEntry.COLUMN_USER_ID, String.valueOf(mUserId))

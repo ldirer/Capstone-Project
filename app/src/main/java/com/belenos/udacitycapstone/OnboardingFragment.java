@@ -232,7 +232,7 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
                     .getIdentifier(iconName, "drawable", getContext().getPackageName()));
         }
         else {
-            Log.d(LOG_TAG, "No data in the wheel. The cat is out of the bag.");
+            Log.d(LOG_TAG, "No data in the wheel.");
             mWheelPicker.setVisibility(View.GONE);
             // That's important cuz we don't behave nice when you want to start learning NULL.
             mStartLearningButton.setVisibility(View.GONE);
@@ -300,7 +300,6 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
                 ((MainActivity) getActivity()).mLanguageDataLoaded = true;
 
                 mListener.onLanguageSelected(languageSelectedName, languageSelectedId);
-
             }
         });
 

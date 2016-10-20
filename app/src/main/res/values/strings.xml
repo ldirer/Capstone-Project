@@ -10,6 +10,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="onboarding_pick_a_language">Pick a language and start learning!</string>
+    <string name="widget_onboarding">Hey %1$s, pick a language and start learning!</string>
     <string name="i_want_to_learn">I want to learn…</string>
     <string name="start_learning">Start learning</string>
     <string name="flag_content_description">language flag</string>
@@ -26,7 +27,7 @@
     <string name="answer_correct_toast">Correct!</string>
     <string name="answer_incorrect_toast">That\'s not it! Try again or flip the card if you can\'t remember!</string>
     <string name="no_network_cant_add_language">You need to be connected to the internet to start learning a new language!</string>
-    <string name="error_invalid_response">Sorry, the data we could not fetch proper data from our server.</string>
+    <string name="error_invalid_response">Sorry, we could not fetch proper data from our server.</string>
     <string name="error_server_down">Sorry, our server seems to be down and we can\'t get language data from it.</string>
     <string name="title_widget">Keep learning!</string>
     <string name="sync_account_type">udacitycapstone.belenos.com</string>
@@ -37,4 +38,5 @@
     <string name="login_welcome">Welcome!\nSign in with Google to start learning a language.</string>
     <string name="widget_card_count_last_day"> %1$d cards in the last 24 hours!</string>
     <string name="flags_application_logo">Flags - Application logo</string>
+    <string name="please_check_connection">We could not join our server. Please make sure you are connected to the internet.</string>
 </resources>

@@ -176,7 +176,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
             Log.e(LOG_TAG, "FAIL SYNC IOEXCEPTION");
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.e(LOG_TAG, "Got unvalid json from server. That's pretty bad.");
+            Log.e(LOG_TAG, "Got invalid json from server. That's pretty bad.");
         }
     }
 

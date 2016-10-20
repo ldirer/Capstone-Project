@@ -2,6 +2,7 @@ package com.belenos.udacitycapstone.network;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -19,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.Vector;
 
 import okhttp3.HttpUrl;
@@ -38,6 +40,9 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
     private int mErrorStatus = 0;
     private static final int ERROR_SERVER_DOWN = 1;
     private static final int ERROR_INVALID_RESPONSE = 2;
+    private static final int ERROR_SERVER_UNREACHABLE = 3;
+
+    private boolean mLanguageDataAvailable = false;
 
     private Context mContext;
     private ProgressBar mProgressBar;
@@ -83,6 +88,10 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
 
             publishProgress(50);
         }
+        catch (UnknownHostException e) {
+            Log.e(LOG_TAG, "Host not found. Is there internet?");
+            mErrorStatus = ERROR_SERVER_UNREACHABLE;
+        }
         catch (IOException e) {
             Log.e(LOG_TAG, "Fail in doInBackground, IOException");
             Log.e(LOG_TAG, e.getMessage());
@@ -90,7 +99,34 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
             mErrorStatus = ERROR_SERVER_DOWN;
         }
 
-        //TODO: parse fetched stuff. Add words to database. Report progress.
+        // Check if we have data for the language. Even if we failed here we might have data from a previous download.
+        // We could do this in one query (join word and language and filter by language name) but I'm lazy.
+        Cursor languageCursor = mContext.getContentResolver().query(DbContract.LanguageEntry.buildLanguagesUri(),
+                new String[]{DbContract.LanguageEntry._ID},
+                DbContract.LanguageEntry.COLUMN_NAME + " = ?",
+                new String[]{mLanguageName}, null);
+
+        if (languageCursor == null || !languageCursor.moveToFirst()) {
+            Log.e(LOG_TAG, "uh uh, could not find a language in db for language name: " + mLanguageName);
+        }
+        long languageId = 0;
+
+        if (languageCursor != null) {
+            languageId = languageCursor.getLong(0);
+            languageCursor.close();
+        }
+
+        Cursor wordsCursor = mContext.getContentResolver().query(DbContract.WordEntry.CONTENT_URI,
+                null,
+                DbContract.WordEntry.COLUMN_LANGUAGE_ID + " = ?",
+                new String[]{String.valueOf(languageId)},
+                null);
+
+        if (wordsCursor != null) {
+            mLanguageDataAvailable = wordsCursor.moveToFirst();
+            wordsCursor.close();
+        }
+
         return null;
     }
 
@@ -147,23 +183,35 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
+        // Not sure whether -1 could actually be used as a resource integer...
+        int toastMessageResource = -1;
 
         switch (mErrorStatus) {
             case 0:
-                mOnPostExecuteCallback.onPostExecute();
                 break;
             case ERROR_SERVER_DOWN:
-                if (mProgressBar != null) {
-                    mProgressBar.setVisibility(View.GONE);
-                }
-                Toast.makeText(mContext, R.string.error_server_down, Toast.LENGTH_LONG).show();
+                toastMessageResource = R.string.error_server_down;
                 break;
             case ERROR_INVALID_RESPONSE:
-                if (mProgressBar != null) {
-                    mProgressBar.setVisibility(View.GONE);
-                }
-                Toast.makeText(mContext, R.string.error_invalid_response, Toast.LENGTH_LONG).show();
+                toastMessageResource = R.string.error_invalid_response;
                 break;
+            case ERROR_SERVER_UNREACHABLE:
+                toastMessageResource = R.string.please_check_connection;
+                break;
+        }
+
+        if (!mLanguageDataAvailable) {
+            if (mProgressBar != null) {
+                mProgressBar.setVisibility(View.GONE);
+            }
+            if (toastMessageResource != -1) {
+                Toast.makeText(mContext, toastMessageResource, Toast.LENGTH_LONG).show();
+            }
+        }
+        else {
+            // I choose to silence any (toast) error message in the event when we had an error but we have data available.
+            // I think it would only be confusing to see an error message when everything seems to work.
+            mOnPostExecuteCallback.onPostExecute();
         }
     }
 

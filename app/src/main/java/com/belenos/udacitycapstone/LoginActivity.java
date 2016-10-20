@@ -33,6 +33,8 @@ import com.google.android.gms.common.api.Status;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
+import static com.belenos.udacitycapstone.GameFragment.ACTION_DATA_UPDATED;
+
 
 /**
  * Source: https://github.com/googlesamples/google-services/blob/master/android/signin/app/src/main/java/com/google/samples/quickstart/signin/SignInActivity.java#L59-L64
@@ -170,14 +172,14 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                         .apply();
 
 
-
-
-
-
                 // Note we could use AsyncQueryHandler to move the insert out of the UI thread.
                 // Not sure the performance gain would be huge though.
                 ContentValues userCV = new ContentValues();
-                userCV.put(DbContract.UserEntry.COLUMN_NAME, acct.getDisplayName());
+                String displayName = acct.getDisplayName();
+                if (displayName == null) {
+                    displayName = "Mysterious man/woman/individual";
+                }
+                userCV.put(DbContract.UserEntry.COLUMN_NAME, displayName);
                 userCV.put(DbContract.UserEntry.COLUMN_GOOGLE_ID, acct.getId());
 
                 ContentResolver contentResolver = getContentResolver();
@@ -211,6 +213,11 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
                 Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
+
+                // Update our widget since we logged in successfully
+                Intent widgetIntent = new Intent(ACTION_DATA_UPDATED).setPackage(getPackageName());
+                sendBroadcast(widgetIntent);
+                Log.d(LOG_TAG, "Sending broadcast intent for widget");
             }
         } else {
             // We do nothing (=Still show the sign in button).

@@ -50,7 +50,7 @@ public class DbProvider extends ContentProvider {
 
     private static final String strLanguageNotLearnedForUserTables = LanguageEntry.TABLE_NAME + " LEFT JOIN " +
             "(SELECT * FROM " + UserLanguageEntry.TABLE_NAME +
-            " WHERE " + UserLanguageEntry.TABLE_NAME + "." + UserLanguageEntry.COLUMN_USER_ID + " = 1" +
+            " WHERE " + UserLanguageEntry.TABLE_NAME + "." + UserLanguageEntry.COLUMN_USER_ID + " = ?" +
             ") " + UserLanguageEntry.TABLE_NAME +
             " ON " + UserLanguageEntry.TABLE_NAME + "." + UserLanguageEntry.COLUMN_LANGUAGE_ID +
             " = " + LanguageEntry.TABLE_NAME + "." + LanguageEntry._ID;
@@ -305,6 +305,7 @@ public class DbProvider extends ContentProvider {
         // I did it because I did not find a way to have a selection parameter in a subquery.
         return mDbHelper.getReadableDatabase().rawQuery(
                 "SELECT * FROM " +
+                        // Oooh that's bad very bad. Don't know how to avoid that replace though.
                         strLanguageNotLearnedForUserTables.replace("?", userId) +
                         " WHERE " + sSelectionByUserIdIsNull  + " ORDER BY " + sortOrder,
                 null);

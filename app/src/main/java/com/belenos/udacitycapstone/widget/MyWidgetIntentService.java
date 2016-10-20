@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.belenos.udacitycapstone.LoginActivity;
@@ -17,6 +18,7 @@ import com.belenos.udacitycapstone.R;
 import com.belenos.udacitycapstone.data.DbContract;
 
 public class MyWidgetIntentService extends IntentService {
+    private static final String LOG_TAG = MyWidgetIntentService.class.getSimpleName();
 
     private static final String[] COLUMNS = {
             "COUNT(" + DbContract.AttemptEntry.COLUMN_TIMESTAMP + ") as attempt_count",
@@ -28,6 +30,7 @@ public class MyWidgetIntentService extends IntentService {
     private static final int COLUMN_ICON_NAME = 1;
     private static final int COLUMN_LANGUAGE_ID = 2;
     private static final int COLUMN_LANGUAGE_NAME = 3;
+    //TODO: this initialization stuff does not work cuz we create a new service on every update!...
     private boolean sinitialized = false;
 
     public MyWidgetIntentService() {
@@ -49,6 +52,7 @@ public class MyWidgetIntentService extends IntentService {
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         Long userId = preferences.getLong(LoginActivity.KEY_USER_ID, 0);
+        String userName = preferences.getString(LoginActivity.KEY_GOOGLE_GIVEN_NAME, null);
 
         Uri uri = DbContract.LanguageEntry.buildLanguagesAttemptCount(
                 userId, System.currentTimeMillis() / 1000 - 60 * 60 * 24);
@@ -57,7 +61,7 @@ public class MyWidgetIntentService extends IntentService {
 
         if ((data == null || !data.moveToFirst()) && !sinitialized) {
             // We try to provide a relevant logged out view when we don't have anything else to show.
-            drawWidgets(null, appWidgetManager, appWidgetIds);
+            drawWidgets(null, userId, userName, appWidgetManager, appWidgetIds);
         }
 
         if (data == null) {
@@ -69,29 +73,31 @@ public class MyWidgetIntentService extends IntentService {
         }
 
 
-        drawWidgets(data, appWidgetManager, appWidgetIds);
+        drawWidgets(data, userId, userName, appWidgetManager, appWidgetIds);
         data.close();
         sinitialized = true;
     }
 
     /**
-     * @param data: if null we'll provide a 'dummy' view that looks bad, but better than an unformatted string.
+     * @param data : if null we'll provide a 'dummy' view that looks bad, but better than an unformatted string.
+     * @param userId
+     * @param userName
      * @param appWidgetManager
      * @param appWidgetIds
      */
 
-    private void drawWidgets(Cursor data, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+    private void drawWidgets(Cursor data, Long userId, String userName, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // Perform this loop procedure for each App Widget that belongs to this provider
         // The actual drawing of the widget.
         for (int appWidgetId : appWidgetIds) {
-
-
             RemoteViews views = new RemoteViews(getPackageName(), R.layout.widget);
 
             // Create an Intent to launch MainActivity
             Intent launchIntent = new Intent(this, MainActivity.class);
-            launchIntent.putExtra(MainActivity.FRAGMENT_ARG_LANGUAGE_NAME, data.getString(COLUMN_LANGUAGE_NAME));
-            launchIntent.putExtra(MainActivity.FRAGMENT_ARG_LANGUAGE_ID, data.getLong(COLUMN_LANGUAGE_ID));
+            if (data != null) {
+                launchIntent.putExtra(MainActivity.FRAGMENT_ARG_LANGUAGE_NAME, data.getString(COLUMN_LANGUAGE_NAME));
+                launchIntent.putExtra(MainActivity.FRAGMENT_ARG_LANGUAGE_ID, data.getLong(COLUMN_LANGUAGE_ID));
+            }
             launchIntent.setAction("bougauniqueaction");
 
             //pending intent because the widget is sort of a remote application.
@@ -102,10 +108,17 @@ public class MyWidgetIntentService extends IntentService {
             views.setOnClickPendingIntent(R.id.widget, pendingIntent);
 
             if (data == null) {
-                views.setTextViewText(R.id.widget_textview, getString(R.string.login_welcome));
+                if (userId == null) {
+                    views.setTextViewText(R.id.widget_textview, getString(R.string.login_welcome));
+                }
+                else {
+                    // The user logged in but did not pick a language yet
+                    views.setTextViewText(R.id.widget_textview, getString(R.string.widget_onboarding, userName));
+                }
             } else {
                 views.setTextViewText(R.id.widget_textview, getString(R.string.widget_card_count_last_day, data.getInt(COLUMN_SUCCESS_COUNT)));
                 String iconName = data.getString(COLUMN_ICON_NAME);
+                Log.d(LOG_TAG, String.format("Setting widget data - icon name: %s", iconName));
                 views.setTextViewCompoundDrawables(R.id.widget_textview,
                         getResources().getIdentifier(iconName, "drawable", getPackageName()),
                         0, 0, 0);

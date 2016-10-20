@@ -1,19 +1,12 @@
 package com.belenos.udacitycapstone;
 
-import android.Manifest;
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -25,18 +18,19 @@ import android.widget.TextView;
 import com.belenos.udacitycapstone.data.DbContract;
 import com.belenos.udacitycapstone.network.MySyncAdapter;
 
-import java.util.Objects;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity implements OnboardingFragment.OnFragmentInteractionListener,
-        HomeFragment.OnFragmentInteractionListener, GameFragment.OnFragmentInteractionListener {
+        HomeFragment.OnFragmentInteractionListener {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     public static final String FRAGMENT_ARG_LANGUAGE_NAME = "LANGUAGE_NAME";
     public static final String FRAGMENT_ARG_LANGUAGE_ID = "LANGUAGE_ID";
+    private static final String GAME_FRAGMENT_TAG = "GAME_FRAGMENT_TAG";
+    private static final String HOME_FRAGMENT_TAG = "HOME_FRAGMENT_TAG";
+    private static final String ONBOARDING_FRAGMENT_TAG = "ONBOARDING_FRAGMENT_TAG";
 
     public boolean mLanguageDataLoaded = false;
 
@@ -71,23 +65,52 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         mToolbar.setNavigationIcon(R.drawable.ic_menu_home);
 
+        // Check if fragment creation *has been done already* (e.g on rotation)!
+        // Nothing to do in that case, right?
+        // Nooo... We have some lame fragment-specific code to run here (show/hide a button) ;).
+        // Retrospectively this is pbbly poor design: we could just check for fragment existence and return if it weren't for this specific bit of code.
+        Fragment gameFragment = getSupportFragmentManager().findFragmentByTag(GAME_FRAGMENT_TAG);
+        Fragment homeFragment = getSupportFragmentManager().findFragmentByTag(HOME_FRAGMENT_TAG);
+        Fragment onboardingFragment = getSupportFragmentManager().findFragmentByTag(ONBOARDING_FRAGMENT_TAG);
+
+        if (gameFragment != null) {
+            startGameFragment(gameFragment, languageName, languageId);
+            return;
+        }
+        if (homeFragment != null) {
+            startHomeFragment(homeFragment);
+            return;
+        }
+        if (onboardingFragment != null) {
+            startOnboardingFragment(onboardingFragment);
+            return;
+        }
+
         if (languageId != 0 && languageName != null) {
             //We have everything we need to start the game right away
-            startGameFragment(languageName, languageId);
+            startGameFragment(null, languageName, languageId);
         } else {
             Cursor languagesCursor = getContentResolver().query(DbContract.UserEntry.buildLanguagesForUserUri(userId), null, null, null, null);
             if (languagesCursor != null && languagesCursor.getCount() > 0) {
-                launchHomeFragment();
+                startHomeFragment(null);
                 languagesCursor.close();
             } else {
-                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                OnboardingFragment fragment = OnboardingFragment.newInstance();
-                ft.replace(R.id.fragment_frame_layout, fragment);
-                ft.addToBackStack(null);
-                ft.commit();
+                startOnboardingFragment(null);
             }
         }
     }
+
+    private void startOnboardingFragment(Fragment existing) {
+        mSwitchAccountTextview.setVisibility(View.VISIBLE);
+        if (existing == null) {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            OnboardingFragment fragment = OnboardingFragment.newInstance();
+            ft.replace(R.id.fragment_frame_layout, fragment, ONBOARDING_FRAGMENT_TAG);
+            ft.addToBackStack(null);
+            ft.commit();
+        }
+    }
+
 
 
     @OnClick(R.id.sign_in_different_account_button)
@@ -104,12 +127,15 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
     }
 
 
-    public void launchHomeFragment() {
-        android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+    public void startHomeFragment(Fragment existing) {
+        mSwitchAccountTextview.setVisibility(View.VISIBLE);
+        if (existing == null) {
         HomeFragment fragment = HomeFragment.newInstance();
-        ft.replace(R.id.fragment_frame_layout, fragment, "home");
-        ft.addToBackStack(null);
-        ft.commit();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_frame_layout, fragment, HOME_FRAGMENT_TAG)
+                .addToBackStack(null)
+                .commit();
+        }
     }
 
     /**
@@ -131,22 +157,24 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
 
     @Override
     public void onLanguageSelected(String languageName, long languageId) {
-        // TODO; make sure we replace the fragment cleanly
-        startGameFragment(languageName, languageId);
+        startGameFragment(null, languageName, languageId);
     }
 
 
-    public void startGameFragment(String languageName, long languageId) {
-        android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+    public void startGameFragment(Fragment existing, String languageName, long languageId) {
         mSwitchAccountTextview.setVisibility(View.GONE);
-        GameFragment fragment = GameFragment.newInstance();
-        Bundle args = new Bundle();
-        args.putString(FRAGMENT_ARG_LANGUAGE_NAME, languageName);
-        args.putLong(FRAGMENT_ARG_LANGUAGE_ID, languageId);
-        fragment.setArguments(args);
-        ft.replace(R.id.fragment_frame_layout, fragment, "game");
-        ft.addToBackStack(null);
-        ft.commit();
+        if (existing == null) {
+            // The fragment is already created. Already. Created.
+            android.support.v4.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            GameFragment fragment = GameFragment.newInstance();
+            Bundle args = new Bundle();
+            args.putString(FRAGMENT_ARG_LANGUAGE_NAME, languageName);
+            args.putLong(FRAGMENT_ARG_LANGUAGE_ID, languageId);
+            fragment.setArguments(args);
+            ft.replace(R.id.fragment_frame_layout, fragment, GAME_FRAGMENT_TAG);
+            ft.addToBackStack(null);
+            ft.commit();
+        }
     }
 
 
@@ -159,8 +187,7 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
 
         if (id == android.R.id.home) {
             Log.d(LOG_TAG, "action bar clicked");
-            mSwitchAccountTextview.setVisibility(View.VISIBLE);
-            launchHomeFragment();
+            startHomeFragment(null);
         }
 
         return super.onOptionsItemSelected(item);

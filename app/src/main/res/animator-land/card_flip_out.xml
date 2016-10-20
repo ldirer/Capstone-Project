@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- DISABLE animation for landscape. Mystic opengl crash... -->
+<!-- We make the duration 0 because it makes more sense UI wise
+(stuff is run before this and some callbacks at the end of this, if nothing happens in between it's weird) -->
+<!--Well turns out there's still a delay before my input text field is disabled. For running a 0-long animation. SUCKS.-->
+<objectAnimator xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="0"
+    android:interpolator="@android:interpolator/linear"
+    android:propertyName="rotationY"
+    android:valueFrom="0"
+    android:valueTo="0" />

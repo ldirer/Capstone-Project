@@ -80,14 +80,13 @@ class LanguagesAdapter extends RecyclerView.Adapter<LanguagesAdapter.LanguagesAd
         holder.mResumeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MainActivity) mFragment.getActivity()).startGameFragment(languageName, languageId);
+                ((MainActivity) mFragment.getActivity()).startGameFragment(null, languageName, languageId);
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        Log.d(LOG_TAG, "in getItemCount");
         // We always return one more because we want a 'start learning a new language' item.
         if (null == mCursor) return 1;
         return mCursor.getCount() + 1;
