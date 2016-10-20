@@ -30,8 +30,7 @@ public class MyWidgetIntentService extends IntentService {
     private static final int COLUMN_ICON_NAME = 1;
     private static final int COLUMN_LANGUAGE_ID = 2;
     private static final int COLUMN_LANGUAGE_NAME = 3;
-    //TODO: this initialization stuff does not work cuz we create a new service on every update!...
-    private boolean sinitialized = false;
+    private static boolean sInitialized = false;
 
     public MyWidgetIntentService() {
         super("MyWidgetIntentService");
@@ -39,8 +38,6 @@ public class MyWidgetIntentService extends IntentService {
 
     /**
      * Implementation inspired from sunshine app.
-     *
-     * @param intent
      */
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -58,8 +55,9 @@ public class MyWidgetIntentService extends IntentService {
                 userId, System.currentTimeMillis() / 1000 - 60 * 60 * 24);
 
         Cursor data = getContentResolver().query(uri, COLUMNS, null, null, "attempt_count DESC");
+        Log.d(LOG_TAG, String.format("INITIALIZED? %b", sInitialized));
 
-        if ((data == null || !data.moveToFirst()) && !sinitialized) {
+        if ((data == null || !data.moveToFirst()) && !sInitialized) {
             // We try to provide a relevant logged out view when we don't have anything else to show.
             drawWidgets(null, userId, userName, appWidgetManager, appWidgetIds);
         }
@@ -75,15 +73,11 @@ public class MyWidgetIntentService extends IntentService {
 
         drawWidgets(data, userId, userName, appWidgetManager, appWidgetIds);
         data.close();
-        sinitialized = true;
+        sInitialized = true;
     }
 
     /**
      * @param data : if null we'll provide a 'dummy' view that looks bad, but better than an unformatted string.
-     * @param userId
-     * @param userName
-     * @param appWidgetManager
-     * @param appWidgetIds
      */
 
     private void drawWidgets(Cursor data, Long userId, String userName, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -98,7 +92,6 @@ public class MyWidgetIntentService extends IntentService {
                 launchIntent.putExtra(MainActivity.FRAGMENT_ARG_LANGUAGE_NAME, data.getString(COLUMN_LANGUAGE_NAME));
                 launchIntent.putExtra(MainActivity.FRAGMENT_ARG_LANGUAGE_ID, data.getLong(COLUMN_LANGUAGE_ID));
             }
-            launchIntent.setAction("bougauniqueaction");
 
             //pending intent because the widget is sort of a remote application.
             // That flag thing... Extras were always null in my activity.

@@ -3,7 +3,6 @@ package com.belenos.udacitycapstone;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -62,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         ButterKnife.bind(this);
 
         setSupportActionBar(mToolbar);
+
+        //noinspection ConstantConditions
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         mToolbar.setNavigationIcon(R.drawable.ic_menu_home);
 
@@ -118,12 +119,6 @@ public class MainActivity extends AppCompatActivity implements OnboardingFragmen
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setAction(LoginActivity.ACTION_LOGOUT);
         startActivity(intent);
-    }
-
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-        // Do smt.
     }
 
 

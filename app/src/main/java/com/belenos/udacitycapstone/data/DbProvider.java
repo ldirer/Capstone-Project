@@ -30,7 +30,6 @@ public class DbProvider extends ContentProvider {
     private static final int USER_ID = 105;
     private static final int WORD = 106;
     private static final int WORD_ID = 107;
-    private static final int WORD_BY_LANGUAGE = 108;
     private static final int ATTEMPT = 109;
     private static final int ATTEMPTS_BY_USER_BY_LANGUAGE = 110;
     private static final int LANGUAGES_NOT_LEARNED_FOR_USER = 111;
@@ -119,9 +118,6 @@ public class DbProvider extends ContentProvider {
 
     //word._id = ?
     private static final String sWordSelection = WordEntry.TABLE_NAME + "." + WordEntry._ID + " = ? ";
-
-    //word.language_id = ?
-    private static final String sWordByLanguageSelection = WordEntry.TABLE_NAME + "." + WordEntry.COLUMN_LANGUAGE_ID + " = ? ";
 
     private static final String sAttemptsByUserByLanguageSelection = "(" + AttemptEntry.TABLE_NAME + "." + AttemptEntry.COLUMN_USER_ID + " = ? OR "
     + AttemptEntry.TABLE_NAME + "." + AttemptEntry.COLUMN_USER_ID + " IS NULL " + ") AND " +
@@ -311,23 +307,6 @@ public class DbProvider extends ContentProvider {
                 null);
     }
 
-    /**
-     * We do a groupby on word id here so projection needs to be some aggregated field.
-     */
-    private Cursor getAttempts(Uri uri, String[] projection, String sortOrder) {
-        String[] selectionArgs = new String[] {
-                uri.getQueryParameter(AttemptEntry.COLUMN_USER_ID),
-                uri.getQueryParameter(AttemptEntry.COLUMN_LANGUAGE_ID)
-        };
-
-        return sAttemptsQueryBuilder.query(mDbHelper.getReadableDatabase(),
-                projection,
-                sAttemptsByUserByLanguageSelection,
-                selectionArgs,
-                AttemptEntry.COLUMN_WORD_ID,
-                null,
-                sortOrder);
-    }
 
     /**
      * Left join of words with attempts (grouped by word_id) filtered by user and language.
@@ -348,25 +327,6 @@ public class DbProvider extends ContentProvider {
 
     }
 
-
-    /**
-     * TODO: delete that?
-     * @param uri
-     * @param projection
-     * @param sortOrder
-     * @return
-     */
-    private Cursor getWordsByLanguage(Uri uri, String[] projection, String sortOrder) {
-        Log.d(LOG_TAG, "in getWordsByLanguage, uri=" + uri.toString());
-        String[] selectionArgs = new String[]{uri.getQueryParameter(WordEntry.COLUMN_LANGUAGE_ID)};
-        return sWordsQueryBuilder.query(mDbHelper.getReadableDatabase(),
-                projection,
-                sWordByLanguageSelection,
-                selectionArgs,
-                null,
-                null,
-                sortOrder);
-    }
 
     private Cursor getWord(Uri uri, String[] projection, String sortOrder) {
         String[] selectionArgs = new String[]{WordEntry.getIdFromUri(uri)};

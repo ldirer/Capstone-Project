@@ -3,7 +3,6 @@ package com.belenos.udacitycapstone;
 import android.animation.Animator;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -13,7 +12,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -23,7 +21,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,49 +28,29 @@ import android.widget.Toast;
 import com.belenos.udacitycapstone.data.DbContract;
 import com.belenos.udacitycapstone.utils.TrackedFragment;
 import com.belenos.udacitycapstone.utils.Utils;
-import com.google.android.gms.analytics.Tracker;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link GameFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link GameFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class GameFragment extends TrackedFragment implements LoaderManager.LoaderCallbacks<Cursor>{
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
     private static final String LOG_TAG = GameFragment.class.getSimpleName();
 
     public static final String ACTION_DATA_UPDATED = "com.belenos.udacitycapstone.ACTION_DATA_UPDATED";
 
     private static final String[] WORD_COLUMNS = {
             DbContract.WordEntry.TABLE_NAME + "." + DbContract.WordEntry._ID,
-            DbContract.WordEntry.COLUMN_LANGUAGE_ID,
             DbContract.WordEntry.COLUMN_WORD,
             DbContract.WordEntry.COLUMN_TRANSLATION
     };
 
 
-
-
-
     public static final int COL_WORD_ID = 0;
-    public static final int COL_LANGUAGE_ID = 1;
-    public static final int COL_WORD = 2;
-    public static final int COL_TRANSLATION = 3;
+    public static final int COL_WORD = 1;
+    public static final int COL_TRANSLATION = 2;
+
     private static final int LOADER_ID = 1;
-
-
-
 
     @BindView(R.id.what_to_do) TextView mWhatToDoTextview;
     @BindView(R.id.game_cardview) CardView mGameCardview;
@@ -91,9 +68,6 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
     private static final int BACK_SHOWN_STATE = 3;
     private static final Integer[] STATE_SEQUENCE = {FRONT_SHOWN_STATE, FLIPPING_FRONT_SHOWN_STATE, FLIPPING_BACK_SHOWN_STATE, BACK_SHOWN_STATE, FLIPPING_BACK_SHOWN_STATE, FLIPPING_FRONT_SHOWN_STATE};
 
-
-
-
     private String mLanguageName;
     private long mLanguageId;
     private long mUserId;
@@ -102,8 +76,6 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
     private Long mWordToTranslateId;
 
     private String mWordTranslated = "Je mange";
-    private Tracker mTracker;
-
 
     public GameFragment() {
         // Required empty public constructor
@@ -146,7 +118,6 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
         ButterKnife.bind(this, view);
 
         mWhatToDoTextview.setText(getResources().getString(R.string.translate_into_language, mLanguageName));
-        // TODO: the visibility will depend on whether the user has seen the word before.
         updateWordViews();
         mTranslatedTextview.setVisibility(View.INVISIBLE);
         mCardState = FRONT_SHOWN_STATE;
@@ -287,7 +258,7 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
         if (success) {
             // We want to:
             // 1. Congratulate the user!
-            // 2. Change the card to a new one. = Restarting the loader and maybe launch an animation. TODO
+            // 2. Change the card to a new one. = Restarting the loader.
             // 3. Reset the answer field.
             Toast.makeText(getContext(), getString(R.string.answer_correct_toast), Toast.LENGTH_LONG).show();
             getLoaderManager().restartLoader(LOADER_ID, null, this);

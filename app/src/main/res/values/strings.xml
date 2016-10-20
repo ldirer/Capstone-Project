@@ -7,8 +7,6 @@
     <string name="user_first_greeting">Welcome %1$s!</string>
     <string name="user_greeting">Hey %1$s!</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="onboarding_pick_a_language">Pick a language and start learning!</string>
     <string name="widget_onboarding">Hey %1$s, pick a language and start learning!</string>
     <string name="i_want_to_learn">I want to learn…</string>
@@ -22,17 +20,15 @@
     <string name="translate_into_language">Translate the phrase above into %1$s.</string>
     <string name="check_answer">Check my answer</string>
 
-
-
     <string name="answer_correct_toast">Correct!</string>
-    <string name="answer_incorrect_toast">That\'s not it! Try again or flip the card if you can\'t remember!</string>
+    <string name="answer_incorrect_toast">That\'s not it! Try again or flip the card!</string>
     <string name="no_network_cant_add_language">You need to be connected to the internet to start learning a new language!</string>
     <string name="error_invalid_response">Sorry, we could not fetch proper data from our server.</string>
     <string name="error_server_down">Sorry, our server seems to be down and we can\'t get language data from it.</string>
     <string name="title_widget">Keep learning!</string>
     <string name="sync_account_type">udacitycapstone.belenos.com</string>
     <string name="error_insert_user">Sorry, something went wrong and we could not log you in.</string>
-    <string name="server_host">1397fb80.ngrok.io</string>
+    <string name="server_host">91586d25.ngrok.io</string>
     <string name="debug_underlined"><u>Bouga centered?</u></string>
     <string name="no_more_new_languages">Woops! Looks like we don\'t have a new language for you to learn at the moment!</string>
     <string name="login_welcome">Welcome!\nSign in with Google to start learning a language.</string>

@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.media.MediaBrowserCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -39,6 +38,9 @@ import static com.belenos.udacitycapstone.GameFragment.ACTION_DATA_UPDATED;
 /**
  * Source: https://github.com/googlesamples/google-services/blob/master/android/signin/app/src/main/java/com/google/samples/quickstart/signin/SignInActivity.java#L59-L64
  * Plus documentation.
+ *
+ *
+ * Here we could check for internet and warn the user that logging in requires internet (Google does not do that apparently!?...)
  */
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
@@ -64,7 +66,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         super.onCreate(savedInstanceState);
 
 
-        Toolbar toolbar = null;
+        Toolbar toolbar;
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -129,7 +131,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
                         new ResultCallback<Status>() {
                             @Override
-                            public void onResult(Status status) {
+                            public void onResult(@NonNull Status status) {
                                 Log.d(LOG_TAG, "in signOut.onResult");
                                 Log.d(LOG_TAG, status.isSuccess() ? "success" : "not success");
                             }
@@ -186,8 +188,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 Uri userUri;
                 try {
                     userUri = contentResolver.insert(DbContract.UserEntry.CONTENT_URI, userCV);
-                }
-                catch (SQLException e) {
+                } catch (SQLException e) {
                     // Happens when we try to insert a user who already exists.
                     userUri = DbContract.UserEntry.buildUserByGoogleIdUri(acct.getId());
                 }
@@ -197,15 +198,20 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                             null,
                             null,
                             null);
-                    c.moveToFirst();
-                    long userId = c.getLong(0);
-                    c.close();
-                    preferences.edit().putLong(KEY_USER_ID, userId).apply();
 
-                    Log.d(LOG_TAG, "Running MySyncAdapter (supposedly!)");
-                    MySyncAdapter.syncImmediately(this);
-                }
-                else {
+                    if (c != null && c.moveToFirst()) {
+                        long userId = c.getLong(0);
+                        c.close();
+                        preferences.edit().putLong(KEY_USER_ID, userId).apply();
+
+                        Log.d(LOG_TAG, "Running MySyncAdapter (supposedly!)");
+                        MySyncAdapter.syncImmediately(this);
+                    } else {
+                        Log.e(LOG_TAG, "Could not retrieve a user we just inserted in the db!");
+                        if (c != null)
+                            c.close();
+                    }
+                } else {
                     Log.e(LOG_TAG, "userUri is null! We could not insert nor retrieve a matching Google id...");
                     Toast.makeText(this, R.string.error_insert_user, Toast.LENGTH_LONG).show();
                     return;

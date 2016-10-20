@@ -10,7 +10,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.belenos.udacitycapstone.LoginActivity">
 
-    <!--TODO: Add logo, welcome message.-->
     <Space
         android:layout_width="match_parent"
         android:layout_height="0dp"

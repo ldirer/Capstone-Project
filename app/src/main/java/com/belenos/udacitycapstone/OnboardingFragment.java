@@ -85,7 +85,6 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
     public static final int COL_LANGUAGE_ID = 0;
     public static final int COL_LANGUAGE_NAME = 1;
     public static final int COL_LANGUAGE_ICON_NAME = 2;
-    private String mUserGoogleId;
     private long mUserId;
 
     public OnboardingFragment() {
@@ -110,7 +109,6 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         mDisplayName = preferences.getString(LoginActivity.KEY_GOOGLE_GIVEN_NAME, null);
-        mUserGoogleId = preferences.getString(LoginActivity.KEY_GOOGLE_ID, null);
         mUserId = preferences.getLong(LoginActivity.KEY_USER_ID, 0);
 
         ((MainActivity) getActivity()).mLanguageDataLoaded = false;
@@ -260,8 +258,6 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
         void onLanguageSelected(String languageSelectedName, long languageId);
     }
 

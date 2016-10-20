@@ -41,8 +41,8 @@ public class DbHelper extends SQLiteOpenHelper{
                 LanguageEntry.COLUMN_ICON_NAME + " TEXT NOT NULL" +
                 ");";
 
-        // TODO: nice to have: a UNIQUE constraint on user_id, language_id. This will be enforced by the UI though (the user wont be able to pick twice the same language).
-        // TODO: enforce it in the UI ;).
+        // Could be nice to have: a UNIQUE constraint on user_id, language_id.
+        // This will be enforced by the UI though (the user wont be able to pick twice the same language).
         final String SQL_CREATE_USER_LANGUAGE_TABLE = "CREATE TABLE " + UserLanguageEntry.TABLE_NAME + " (" +
                 UserLanguageEntry._ID + " INTEGER PRIMARY KEY," +
                 UserLanguageEntry.COLUMN_USER_ID + " INTEGER NOT NULL, " +

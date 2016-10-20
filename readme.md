@@ -8,5 +8,13 @@ I did not have the chance to try it on a real device but on my emulators the car
 
 
 
+# Known issues
+
+The card flipping animation crashes on (emulated) tablets.
+I did not have the chance to try it on a real device, I hope it performs better.
+
+I reduced the animation to its simplest form so next step is to remove it altogether.
+
+
 
 

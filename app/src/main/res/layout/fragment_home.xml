@@ -3,32 +3,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.belenos.udacitycapstone.HomeFragment"
-    >
+    tools:context="com.belenos.udacitycapstone.HomeFragment">
 
 
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        >
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/my_languages"
-            android:textAppearance="@style/header" />
+        android:layout_height="wrap_content"
+        android:text="@string/my_languages"
+        android:textAppearance="@style/header" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/languages_recyclerview"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        />
-
-
-
-    </LinearLayout>
+        android:layout_weight="1" />
 
 
 </LinearLayout>
+
+

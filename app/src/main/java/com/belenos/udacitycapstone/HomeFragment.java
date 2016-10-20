@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -17,7 +16,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import com.belenos.udacitycapstone.data.DbContract;
 import com.belenos.udacitycapstone.utils.TrackedFragment;
@@ -33,11 +31,11 @@ import butterknife.ButterKnife;
  */
 public class HomeFragment extends TrackedFragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
-    private static final String ARG_USER_ID = "ARG_USER_ID";
     private static final String LOG_TAG = HomeFragment.class.getSimpleName();
     public static final String FRAGMENT_ARG_ALREADY_ONBOARDED = "ALREADY_ONBOARDED";
 
 
+    // Not actually using this listener. I'm leaving it because it's a nice pattern to be aware of.
     private OnFragmentInteractionListener mListener;
     private long mUserId;
 
@@ -154,8 +152,6 @@ public class HomeFragment extends TrackedFragment implements LoaderManager.Loade
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
         void onAddLanguage();
     }
 }

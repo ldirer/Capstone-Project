@@ -104,8 +104,6 @@ class LanguagesAdapter extends RecyclerView.Adapter<LanguagesAdapter.LanguagesAd
     void swapCursor(Cursor newCursor) {
         mCursor = newCursor;
         notifyDataSetChanged();
-        // TODO: add an empty view
-        //  mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
     public Cursor getCursor() {
