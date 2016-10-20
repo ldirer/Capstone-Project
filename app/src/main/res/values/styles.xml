@@ -17,4 +17,8 @@
         <item name="android:textSize">@dimen/header_text_size</item>
     </style>
 
+    <style name="onboardingLinearLayout">
+        <item name="android:orientation">vertical</item>
+    </style>
+
 </resources>
