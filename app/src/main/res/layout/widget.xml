@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--If we wanted to support android < 4.0 we'd need to wrap this in a FrameLayout specifying the proper margin-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
