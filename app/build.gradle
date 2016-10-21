@@ -6,6 +6,15 @@ android {
     compileSdkVersion 25
     buildToolsVersion "24.0.2"
 
+    signingConfigs {
+        sign_app {
+            keyAlias 'capstone'
+            keyPassword 'password'
+            storeFile file('../keystoredummy.jks')
+            storePassword 'password'
+        }
+    }
+
     defaultConfig {
         applicationId "com.belenos.udacitycapstone"
         testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
@@ -18,8 +27,10 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.sign_app
         }
     }
+
 }
 
 dependencies {

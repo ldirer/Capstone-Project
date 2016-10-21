@@ -2,6 +2,8 @@
     <string name="app_name">UdacityCapstone</string>
     <string name="content_authority">com.belenos.udacitycapstone</string>
 
+    <string name="server_host">808bc92e.ngrok.io</string>
+
 
     <!-- Strings related to login -->
     <string name="user_first_greeting">Welcome %1$s!</string>
@@ -28,11 +30,10 @@
     <string name="title_widget">Keep learning!</string>
     <string name="sync_account_type">udacitycapstone.belenos.com</string>
     <string name="error_insert_user">Sorry, something went wrong and we could not log you in.</string>
-    <string name="server_host">91586d25.ngrok.io</string>
     <string name="debug_underlined"><u>Bouga centered?</u></string>
     <string name="no_more_new_languages">Woops! Looks like we don\'t have a new language for you to learn at the moment!</string>
     <string name="login_welcome">Welcome!\nSign in with Google to start learning a language.</string>
-    <string name="widget_card_count_last_day"> %1$d cards in the last 24 hours!</string>
+    <string name="widget_card_count_last_48"> Cards in the last 48 hours: %1$d</string>
     <string name="flags_application_logo">Flags - Application logo</string>
     <string name="please_check_connection">We could not join our server. Please make sure you are connected to the internet.</string>
 </resources>

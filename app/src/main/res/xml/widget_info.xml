@@ -13,11 +13,10 @@
          See the License for the specific language governing permissions and
          limitations under the License.
     -->
-<!--TODO: preview image-->
-<!--android:previewImage="@drawable/widget_preview"-->
 
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:previewImage="@drawable/widget_preview"
     android:initialLayout="@layout/widget"
     android:minHeight="@dimen/widget_default_height"
     android:minResizeHeight="@dimen/widget_min_resize_height"

@@ -52,7 +52,7 @@ public class MyWidgetIntentService extends IntentService {
         String userName = preferences.getString(LoginActivity.KEY_GOOGLE_GIVEN_NAME, null);
 
         Uri uri = DbContract.LanguageEntry.buildLanguagesAttemptCount(
-                userId, System.currentTimeMillis() / 1000 - 60 * 60 * 24);
+                userId, System.currentTimeMillis() / 1000 - 60 * 60 * 48);
 
         Cursor data = getContentResolver().query(uri, COLUMNS, null, null, "attempt_count DESC");
         Log.d(LOG_TAG, String.format("INITIALIZED? %b", sInitialized));
@@ -105,11 +105,11 @@ public class MyWidgetIntentService extends IntentService {
                     views.setTextViewText(R.id.widget_textview, getString(R.string.login_welcome));
                 }
                 else {
-                    // The user logged in but did not pick a language yet
+                    // The user logged in but did not pick a language yet. Or has no activity in the last 48h.
                     views.setTextViewText(R.id.widget_textview, getString(R.string.widget_onboarding, userName));
                 }
             } else {
-                views.setTextViewText(R.id.widget_textview, getString(R.string.widget_card_count_last_day, data.getInt(COLUMN_SUCCESS_COUNT)));
+                views.setTextViewText(R.id.widget_textview, getString(R.string.widget_card_count_last_48, data.getInt(COLUMN_SUCCESS_COUNT)));
                 String iconName = data.getString(COLUMN_ICON_NAME);
                 Log.d(LOG_TAG, String.format("Setting widget data - icon name: %s", iconName));
                 views.setTextViewCompoundDrawables(R.id.widget_textview,
