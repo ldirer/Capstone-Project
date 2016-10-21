@@ -1,0 +1,51 @@
+{
+  "project_info": {
+    "project_number": "881795596402",
+    "project_id": "udacitycapstone-143308"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:881795596402:android:f50c1a9ab7144cdd",
+        "android_client_info": {
+          "package_name": "com.belenos.udacitycapstone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "881795596402-p0rb9mvgmr6aojpv5lq407q578lmqn7m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.belenos.udacitycapstone",
+            "certificate_hash": "AEED3CA1A6590DE113D5FF3EC5F67176365C3D8B"
+          }
+        },
+        {
+          "client_id": "881795596402-0rgr2c28oo6pg238mmmj9j7hnduck3bn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVrRQOf9RQWvWzYyxi68cyZIGA1k9R2hs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-84106986-1"
+          }
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
