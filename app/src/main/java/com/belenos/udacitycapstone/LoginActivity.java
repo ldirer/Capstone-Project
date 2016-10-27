@@ -179,7 +179,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 ContentValues userCV = new ContentValues();
                 String displayName = acct.getDisplayName();
                 if (displayName == null) {
-                    displayName = "Mysterious man/woman/individual";
+                    displayName = "Mysterious user";
                 }
                 userCV.put(DbContract.UserEntry.COLUMN_NAME, displayName);
                 userCV.put(DbContract.UserEntry.COLUMN_GOOGLE_ID, acct.getId());

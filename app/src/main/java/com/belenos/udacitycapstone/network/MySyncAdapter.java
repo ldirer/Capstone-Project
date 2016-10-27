@@ -51,6 +51,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
     private static final int SYNC_INTERVAL = 70;
     private static final int SYNC_FLEXTIME = 0;
     private String mServerUrl;
+    private int mServerPort = 80;
 
     private Context mContext;
 
@@ -88,6 +89,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         super(context, autoInitialize);
         mContext = context;
         mServerUrl = context.getString(R.string.server_host);
+        mServerPort = Integer.parseInt((context.getString(R.string.server_port)));
     }
 
     /**
@@ -134,6 +136,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         HttpUrl url = new HttpUrl.Builder()
                 .scheme("http")
                 .host(mServerUrl)
+                .port(mServerPort)
                 .addPathSegment("polling")
                 .addQueryParameter("user_google_id", userGoogleId)
                 .addQueryParameter("last_update_unix", String.valueOf(lastUpdateUnix))
@@ -216,6 +219,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         HttpUrl url = new HttpUrl.Builder()
                 .scheme("http")
                 .host(mServerUrl)
+                .port(mServerPort)
                 .addPathSegment(userUrlString)
                 .build();
 
@@ -307,6 +311,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         HttpUrl url = new HttpUrl.Builder()
                 .scheme("http")
                 .host(mServerUrl)
+                .port(mServerPort)
                 .addPathSegment("api")
                 .addPathSegment("user")
                 .build();

@@ -79,9 +79,10 @@ public class DbHelper extends SQLiteOpenHelper{
                 ");";
 
         // We make sure our fixtures ids match our server's.
+        // That's pretty bad honestly. We should fetch it from the server but it's a good way to get a first version.
         final String SQL_FIXTURE_LANGUAGES = "INSERT INTO " + LanguageEntry.TABLE_NAME +
                 " (" + LanguageEntry._ID + ", " + LanguageEntry.COLUMN_NAME + ", " + LanguageEntry.COLUMN_ICON_NAME + ") " +
-                "VALUES (16, 'French', 'fr'), (17, 'German', 'de'), (41, 'Romanian', 'ro'), (47, 'Spanish', 'es');";
+                "VALUES (17, 'French', 'fr'), (18, 'German', 'de'), (42, 'Romanian', 'ro'), (48, 'Spanish', 'es');";
 
         final String SQL_FIXTURE_WORDS = "INSERT INTO " + WordEntry.TABLE_NAME +
                 " (" + WordEntry.COLUMN_LANGUAGE_ID + ", " + WordEntry.COLUMN_WORD + ", " + WordEntry.COLUMN_TRANSLATION + ") " +

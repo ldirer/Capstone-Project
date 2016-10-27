@@ -192,7 +192,7 @@ public class DbProvider extends ContentProvider {
                 break;
             }
             case LANGUAGES: {
-                retCursor = getLanguages(uri, projection, sortOrder);
+                retCursor = getLanguages(uri, projection, selection, selectionArgs, sortOrder);
                 break;
             }
             case USER: {
@@ -467,12 +467,12 @@ public class DbProvider extends ContentProvider {
     }
 
 
-    private Cursor getLanguages(Uri uri, String[] projection, String sortOrder) {
+    private Cursor getLanguages(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         return sLanguagesQueryBuilder.query(
                 mDbHelper.getReadableDatabase(),
                 projection,
-                null,
-                null,
+                selection,
+                selectionArgs,
                 null,
                 null,
                 sortOrder

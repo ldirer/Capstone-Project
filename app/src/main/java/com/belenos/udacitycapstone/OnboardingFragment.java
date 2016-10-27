@@ -169,8 +169,7 @@ public class OnboardingFragment extends TrackedFragment implements WheelPicker.O
 
     @Override
     public void onItemSelected(WheelPicker picker, Object data, int position) {
-        Log.d(LOG_TAG, "in onItemSelected");
-        Log.d(LOG_TAG, String.format("position: %d", position));
+        Log.d(LOG_TAG, String.format("in onItemSelected, position: %d", position));
 
         // We could make a query to retrieve the flag icon and the id, I find this is less cumbersome.
         String iconName = mWheelDataIconNames.get(position);

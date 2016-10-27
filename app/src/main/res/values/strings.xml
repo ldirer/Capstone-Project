@@ -2,7 +2,8 @@
     <string name="app_name">UdacityCapstone</string>
     <string name="content_authority">com.belenos.udacitycapstone</string>
 
-    <string name="server_host">808bc92e.ngrok.io</string>
+    <string name="server_host">104.199.60.228</string>
+    <string name="server_port">80</string>
 
 
     <!-- Strings related to login -->

@@ -51,6 +51,7 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
 
     // I tried port forwarding to use localhost using chrome://inspect but it did not work.
     private String mServerUrl;
+    private int mServerPort = 80;
 
     public FetchLanguageTask(Context context, String languageName,
                              @Nullable ProgressBar progressBar,
@@ -61,6 +62,7 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
         mProgressBar = progressBar;
         mOnPostExecuteCallback = onPostExecuteCallback;
         mServerUrl = mContext.getString(R.string.server_host);
+        mServerPort = Integer.parseInt((context.getString(R.string.server_port)));
     }
 
     @Override
@@ -113,6 +115,9 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
 
         if (languageCursor != null) {
             languageId = languageCursor.getLong(0);
+            if (languageCursor.getCount() > 1) {
+                Log.e(LOG_TAG, "Found several results in cursor but was expecting a unique language!");
+            }
             languageCursor.close();
         }
 
@@ -176,7 +181,7 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
 
     }
 
-    public static interface OnPostExecuteCallback {
+    public interface OnPostExecuteCallback {
         void onPostExecute();
     }
 
@@ -199,6 +204,8 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
                 toastMessageResource = R.string.please_check_connection;
                 break;
         }
+
+        Log.d(LOG_TAG, String.format("mLanguageDataAvailable: %b", mLanguageDataAvailable));
 
         if (!mLanguageDataAvailable) {
             if (mProgressBar != null) {
@@ -239,6 +246,7 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
         HttpUrl url = new HttpUrl.Builder()
                 .scheme("http")
                 .host(mServerUrl)
+                .port(mServerPort)
                 .addPathSegment("api")
                 .addPathSegment("language")
                 .addQueryParameter("q", String.format("{\"filters\":[{\"name\":\"name\",\"op\":\"==\",\"val\":\"%s\"}]}", mLanguageName))
