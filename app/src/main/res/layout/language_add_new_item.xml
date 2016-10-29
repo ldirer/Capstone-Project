@@ -28,6 +28,7 @@
             android:minHeight="0dp"
             android:background="@android:drawable/ic_input_add"
             android:clickable="false"
+            android:contentDescription="@string/add_a_new_language"
             />
         <Space
             android:layout_width="0dp"

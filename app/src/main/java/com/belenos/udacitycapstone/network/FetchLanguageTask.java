@@ -10,10 +10,10 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.belenos.udacitycapstone.MyApplication;
 import com.belenos.udacitycapstone.R;
 import com.belenos.udacitycapstone.data.DbContract;
 import com.belenos.udacitycapstone.utils.Utils;
-import com.facebook.stetho.okhttp3.StethoInterceptor;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -240,7 +240,7 @@ public class FetchLanguageTask extends AsyncTask<Void, Integer, Void> {
 
     private String fetchLanguage() throws IOException {
 
-        OkHttpClient client = new OkHttpClient.Builder().addNetworkInterceptor(new StethoInterceptor()).build();
+        OkHttpClient client = MyApplication.getOkHttpClient();
 
         // We do a search query by name to get the language.
         HttpUrl url = new HttpUrl.Builder()

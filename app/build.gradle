@@ -52,15 +52,15 @@ dependencies {
     compile 'com.android.support:support-v4:25.0.0'
 
     // Google Sign-In and analytics
-    compile 'com.google.android.gms:play-services-auth:9.6.1'
-    compile 'com.google.android.gms:play-services-analytics:9.6.1'
+    compile 'com.google.android.gms:play-services-auth:9.8.0'
+    compile 'com.google.android.gms:play-services-analytics:9.8.0'
 
     // Third party
     compile 'com.jakewharton:butterknife:8.4.0'
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
 
-    compile 'com.facebook.stetho:stetho:1.4.1'
-    compile 'com.facebook.stetho:stetho-okhttp3:1.4.1'
+    debugCompile 'com.facebook.stetho:stetho:1.4.1'
+    debugCompile 'com.facebook.stetho:stetho-okhttp3:1.4.1'
 
     // Non-mainstream libs
     compile 'cn.aigestudio.wheelpicker:WheelPicker:1.1.2'

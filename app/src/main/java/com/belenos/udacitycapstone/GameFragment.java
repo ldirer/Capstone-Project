@@ -213,8 +213,6 @@ public class GameFragment extends TrackedFragment implements LoaderManager.Loade
 
             }
         });
-        Animator animatorGlue = AnimatorInflater.loadAnimator(getContext(), R.animator.card_flip_glue);
-        animatorGlue.setTarget(mGameCardview);
 
         Animator[] animatorList = {animatorOut, animatorIn};
         AnimatorSet animatorSet = new AnimatorSet();

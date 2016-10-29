@@ -37,4 +37,6 @@
     <string name="widget_card_count_last_48"> Cards in the last 48 hours: %1$d</string>
     <string name="flags_application_logo">Flags - Application logo</string>
     <string name="please_check_connection">We could not join our server. Please make sure you are connected to the internet.</string>
+    <string name="google_sign_in_default_display_name">Mysterious user</string>
+    <string name="add_a_new_language">Add a new language</string>
 </resources>

@@ -19,12 +19,12 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.belenos.udacitycapstone.LoginActivity;
+import com.belenos.udacitycapstone.MyApplication;
 import com.belenos.udacitycapstone.R;
 import com.belenos.udacitycapstone.data.DbContract;
 import com.belenos.udacitycapstone.data.DbContract.AttemptEntry;
 import com.belenos.udacitycapstone.data.DbContract.UserLanguageEntry;
 import com.belenos.udacitycapstone.utils.Utils;
-import com.facebook.stetho.okhttp3.StethoInterceptor;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -100,9 +100,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account account, Bundle bundle, String s, ContentProviderClient contentProviderClient, SyncResult syncResult) {
         Log.d(LOG_TAG, "in onPerformSync");
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .addNetworkInterceptor(new StethoInterceptor())
-                .build();
+        OkHttpClient client = MyApplication.getOkHttpClient();
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
         String userGoogleId = preferences.getString(LoginActivity.KEY_GOOGLE_ID, "");
