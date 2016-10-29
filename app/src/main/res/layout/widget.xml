@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--If we wanted to support android < 4.0 we'd need to wrap this in a FrameLayout specifying the proper margin-->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/widget"
+    android:background="@android:color/background_light"
     >
 
     <TextView
@@ -13,10 +13,12 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
+        android:textColor="@color/colorPrimaryText"
         android:drawablePadding="@dimen/widget_drawable_padding"
         xmlns:tools="http://schemas.android.com/tools"
         tools:drawableLeft="@drawable/fr"
+        tools:text="widget message"
         />
 
-</LinearLayout>
+</FrameLayout>
 

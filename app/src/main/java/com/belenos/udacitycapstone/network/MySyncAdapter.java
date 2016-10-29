@@ -7,6 +7,7 @@ import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
@@ -44,6 +45,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+
+import static com.belenos.udacitycapstone.GameFragment.ACTION_DATA_UPDATED;
 
 public class MySyncAdapter extends AbstractThreadedSyncAdapter {
     private static final String LOG_TAG = MySyncAdapter.class.getSimpleName();
@@ -518,6 +521,11 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
                 mContext.getContentResolver().bulkInsert(AttemptEntry.CONTENT_URI, cvArray);
             }
             Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
+
+            // Update our widget!
+            Log.d(LOG_TAG, "Sending broadcast intent for widget");
+            Intent widgetIntent = new Intent(ACTION_DATA_UPDATED).setPackage(getContext().getPackageName());
+            getContext().sendBroadcast(widgetIntent);
         }
     }
 

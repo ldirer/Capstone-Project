@@ -101,6 +101,7 @@ public class MyWidgetIntentService extends IntentService {
             views.setOnClickPendingIntent(R.id.widget, pendingIntent);
 
             if (data == null) {
+
                 if (userId == null) {
                     views.setTextViewText(R.id.widget_textview, getString(R.string.login_welcome));
                 }
